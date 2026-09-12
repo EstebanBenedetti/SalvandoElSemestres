@@ -7,11 +7,11 @@ interface ThemeContextValue { theme: Theme; toggleTheme: () => void; }
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("dark");
-  useEffect(() => {
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === "undefined") return "dark";
     const stored = window.localStorage.getItem("theme");
-    if (stored === "light" || stored === "dark") setTheme(stored);
-  }, []);
+    return stored === "light" || stored === "dark" ? stored : "dark";
+  });
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     window.localStorage.setItem("theme", theme);
