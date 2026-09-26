@@ -47,7 +47,7 @@ export function LoginForm() {
         normalizedEmail.toLowerCase() === "demo@salvandoelsemestre.com" &&
         password === "demo1234"
       ) {
-        router.push("/");
+        router.push("/inicio");
         return;
       }
 

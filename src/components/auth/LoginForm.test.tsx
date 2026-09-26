@@ -50,7 +50,7 @@ describe("LoginForm", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
-  it("redirige al inicio con las credenciales de demostración", async () => {
+  it("redirige a Hola Mundo con las credenciales de demostración", async () => {
     render(<LoginForm />);
 
     fireEvent.change(screen.getByLabelText("Correo electrónico"), {
@@ -62,7 +62,7 @@ describe("LoginForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Entrar" }));
 
     await waitFor(() => {
-      expect(push).toHaveBeenCalledWith("/");
+      expect(push).toHaveBeenCalledWith("/inicio");
     });
   });
 });

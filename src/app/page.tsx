@@ -1,9 +1,5 @@
-import { HolaMundo } from "@/components/home/HolaMundo";
+import { LoginForm } from "@/components/auth/LoginForm";
 
 export default function HomePage() {
-  return (
-    <main className="relative min-h-screen overflow-hidden">
-      <HolaMundo />
-    </main>
-  );
+  return <LoginForm />;
 }
