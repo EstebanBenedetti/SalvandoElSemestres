@@ -155,6 +155,61 @@ export async function recordSuccessfulLogin(userId: string): Promise<void> {
   if (error) throw new Error("No se pudo actualizar el último inicio de sesión.");
 }
 
+export async function listUsers(): Promise<LocalUser[]> {
+  const { data, error } = await getSupabaseAdmin()
+    .from("usuarios")
+    .select(USER_FIELDS)
+    .order("email", { ascending: true })
+    .limit(500);
+  if (error) throw new Error("No se pudieron consultar los usuarios.");
+  return (data ?? []).map((row) => sanitizeUser(mapUser(row as unknown as UserRow)));
+}
+
+export async function updateUser(id: string, input: {
+  nombre?: string | undefined;
+  email?: string | undefined;
+  password?: string | undefined;
+  rol?: UserRecord["rol"] | undefined;
+  activo?: boolean | undefined;
+}): Promise<LocalUser> {
+  const current = await findStoredUser("id", id);
+  if (!current) throw new Error("No se encontró el usuario.");
+
+  if (current.rol === "admin" && (input.rol === "usuario" || input.rol === "coordinador" || input.activo === false)) {
+    const { count, error } = await getSupabaseAdmin()
+      .from("usuarios")
+      .select("id", { count: "exact", head: true })
+      .eq("rol", "admin")
+      .eq("activo", true);
+    if (error) throw new Error("No se pudo validar el último administrador.");
+    if (count === 1) throw new Error("Debe permanecer al menos un administrador activo.");
+  }
+
+  const changes: {
+    nombre?: string;
+    email?: string;
+    password_hash?: string;
+    rol?: UserRecord["rol"];
+    activo?: boolean;
+  } = {};
+  if (input.nombre !== undefined) changes.nombre = input.nombre.trim();
+  if (input.email !== undefined) changes.email = input.email.trim().toLowerCase();
+  if (input.password) changes.password_hash = hashPassword(input.password);
+  if (input.rol !== undefined) changes.rol = input.rol;
+  if (input.activo !== undefined) changes.activo = input.activo;
+
+  const { data, error } = await getSupabaseAdmin()
+    .from("usuarios")
+    .update(changes)
+    .eq("id", id)
+    .select(USER_FIELDS)
+    .maybeSingle();
+  if (error?.code === "23505") throw new Error("Ya existe un usuario con ese email.");
+  if (error) throw new Error("No se pudo actualizar el usuario.");
+  if (!data) throw new Error("No se encontró el usuario.");
+  return sanitizeUser(mapUser(data as unknown as UserRow));
+}
+
 export async function createUser(input: {
   nombre: string;
   email: string;
