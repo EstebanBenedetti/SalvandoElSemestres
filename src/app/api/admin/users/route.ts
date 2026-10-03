@@ -21,21 +21,24 @@ const updateSchema = z.object({
   message: "Indica al menos un cambio.",
 });
 
-async function isAdmin(request: NextRequest): Promise<boolean> {
+async function authorizationStatus(request: NextRequest): Promise<401 | 403 | null> {
   const token = request.cookies.get("auth_token")?.value;
   const payload = token ? verifyToken(token) : null;
-  if (!payload) return false;
+  if (!payload) return 401;
   const user = await findUserById(payload.sub);
-  return Boolean(user?.activo && user.rol === "admin");
+  if (!user?.activo) return 401;
+  return user.rol === "admin" ? null : 403;
 }
 
-function denied() {
-  return NextResponse.json({ success: false, error: "Se requiere una cuenta administradora." }, { status: 403 });
+function denied(status: 401 | 403) {
+  const error = status === 401 ? "Inicia sesión para continuar." : "Se requiere una cuenta administradora.";
+  return NextResponse.json({ success: false, error }, { status });
 }
 
 export async function GET(request: NextRequest) {
   try {
-    if (!(await isAdmin(request))) return denied();
+    const status = await authorizationStatus(request);
+    if (status) return denied(status);
     return NextResponse.json({ success: true, data: await listUsers() });
   } catch {
     return NextResponse.json({ success: false, error: "No se pudieron cargar los usuarios." }, { status: 500 });
@@ -44,7 +47,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    if (!(await isAdmin(request))) return denied();
+    const status = await authorizationStatus(request);
+    if (status) return denied(status);
     const parsed = createSchema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ success: false, error: "Revisa los datos del usuario." }, { status: 400 });
     const user = await createUser(parsed.data);
@@ -58,7 +62,8 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    if (!(await isAdmin(request))) return denied();
+    const status = await authorizationStatus(request);
+    if (status) return denied(status);
     const parsed = updateSchema.safeParse(await request.json());
     if (!parsed.success) return NextResponse.json({ success: false, error: "Revisa los datos del usuario." }, { status: 400 });
     const { id, ...changes } = parsed.data;

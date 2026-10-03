@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 
 type UserRole = "admin" | "usuario" | "coordinador";
@@ -30,6 +31,7 @@ const roleLabels: Record<UserRole, string> = {
 };
 
 export function UserManagement() {
+  const router = useRouter();
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [form, setForm] = useState<UserForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -66,6 +68,10 @@ export function UserManagement() {
       .then(async (response) => ({ response, result: await response.json() }))
       .then(({ response, result }) => {
         if (!active) return;
+        if (response.status === 401) {
+          router.replace("/login");
+          return;
+        }
         if (response.status === 403) {
           setDenied(true);
           return;
@@ -82,7 +88,7 @@ export function UserManagement() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [router]);
 
   function startEditing(user: ManagedUser) {
     setEditingId(user.id);
