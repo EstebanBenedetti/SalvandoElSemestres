@@ -23,7 +23,7 @@ export function LoginForm() {
       });
       const result = await response.json();
       if (!response.ok || !result.success) throw new Error(result.error ?? "No se pudo iniciar sesión.");
-      router.replace(result.data.user.rol === "admin" ? "/usuarios" : "/");
+      router.replace(result.data.user.rol === "admin" ? "/usuarios" : "/dashboard");
       router.refresh();
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "No se pudo iniciar sesión.");
