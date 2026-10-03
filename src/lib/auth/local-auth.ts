@@ -121,7 +121,7 @@ export function verifyToken(token: string): AuthTokenPayload | null {
   }
 }
 
-async function findStoredUser(column: "email" | "id", value: string): Promise<UserRecord | null> {
+async function findStoredUser(column: "email" | "id" | "nombre", value: string): Promise<UserRecord | null> {
   const { data, error } = await getSupabaseAdmin()
     .from("usuarios")
     .select(USER_FIELDS)
@@ -137,13 +137,22 @@ export async function findUserByEmail(email: string): Promise<LocalUser | null> 
   return user ? sanitizeUser(user) : null;
 }
 
+export async function findUserByLogin(identifier: string): Promise<LocalUser | null> {
+  const value = identifier.trim();
+  const isEmail = value.includes("@");
+  const user = await findStoredUser(isEmail ? "email" : "nombre", isEmail ? value.toLowerCase() : value);
+  return user ? sanitizeUser(user) : null;
+}
+
 export async function findUserById(id: string): Promise<LocalUser | null> {
   const user = await findStoredUser("id", id);
   return user ? sanitizeUser(user) : null;
 }
 
-export async function verifyCredentials(email: string, password: string): Promise<boolean> {
-  const user = await findStoredUser("email", email.trim().toLowerCase());
+export async function verifyCredentials(identifier: string, password: string): Promise<boolean> {
+  const value = identifier.trim();
+  const isEmail = value.includes("@");
+  const user = await findStoredUser(isEmail ? "email" : "nombre", isEmail ? value.toLowerCase() : value);
   return Boolean(user?.activo && verifyPassword(password, user.passwordHash));
 }
 

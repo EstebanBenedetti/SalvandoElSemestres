@@ -20,6 +20,7 @@ import {
   createToken,
   createUser,
   findUserByEmail,
+  findUserByLogin,
   recordSuccessfulLogin,
   verifyCredentials,
   verifyToken,
@@ -90,7 +91,9 @@ describe("auth local", () => {
     expect(created).not.toHaveProperty("passwordHash");
     expect(mocks.rows[0]?.password_hash).not.toBe("secreto123");
     await expect(findUserByEmail("prueba@local.test")).resolves.toMatchObject({ nombre: "Usuario de prueba" });
+    await expect(findUserByLogin("Usuario de prueba")).resolves.toMatchObject({ email: "prueba@local.test" });
     await expect(verifyCredentials("prueba@local.test", "secreto123")).resolves.toBe(true);
+    await expect(verifyCredentials("Usuario de prueba", "secreto123")).resolves.toBe(true);
     await expect(verifyCredentials("prueba@local.test", "incorrecta")).resolves.toBe(false);
   });
 

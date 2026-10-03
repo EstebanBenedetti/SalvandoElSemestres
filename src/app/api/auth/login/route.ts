@@ -1,21 +1,21 @@
 import { NextResponse } from "next/server";
-import { createToken, findUserByEmail, recordSuccessfulLogin, sanitizeUser, verifyCredentials } from "@/lib/auth/local-auth";
+import { createToken, findUserByLogin, recordSuccessfulLogin, sanitizeUser, verifyCredentials } from "@/lib/auth/local-auth";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const email = String(body.email ?? "").trim().toLowerCase();
+    const identifier = String(body.email ?? body.username ?? "").trim();
     const password = String(body.password ?? "");
 
-    if (!email || !password) {
-      return NextResponse.json({ success: false, error: "Email y contraseña son requeridos." }, { status: 400 });
+    if (!identifier || !password) {
+      return NextResponse.json({ success: false, error: "Correo o usuario y contraseña son requeridos." }, { status: 400 });
     }
 
-    if (!(await verifyCredentials(email, password))) {
+    if (!(await verifyCredentials(identifier, password))) {
       return NextResponse.json({ success: false, error: "Credenciales inválidas." }, { status: 401 });
     }
 
-    const user = await findUserByEmail(email);
+    const user = await findUserByLogin(identifier);
     if (!user || !user.activo) {
       return NextResponse.json({ success: false, error: "Credenciales inválidas." }, { status: 401 });
     }

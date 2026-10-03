@@ -6,7 +6,7 @@ import { Container } from "@/components/ui/Container";
 
 export function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,7 +19,7 @@ export function LoginForm() {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: identifier, password }),
       });
       const result = await response.json();
       if (!response.ok || !result.success) throw new Error(result.error ?? "No se pudo iniciar sesión.");
@@ -37,7 +37,7 @@ export function LoginForm() {
         <p className="font-mono text-sm text-cyan-300">CUENTA</p>
         <h1 className="mt-2 font-sans text-3xl font-bold">Iniciar sesión</h1>
         <form className="mt-7 grid gap-5" onSubmit={submit}>
-          <label className="grid gap-1.5 text-sm text-slate-300">Email<input required type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} className="border border-white/15 bg-slate-950/60 px-3 py-2.5 text-white outline-none focus:border-cyan-300" /></label>
+          <label className="grid gap-1.5 text-sm text-slate-300">Correo o usuario<input required type="text" autoComplete="username" value={identifier} onChange={(event) => setIdentifier(event.target.value)} className="border border-white/15 bg-slate-950/60 px-3 py-2.5 text-white outline-none focus:border-cyan-300" /></label>
           <label className="grid gap-1.5 text-sm text-slate-300">Contraseña<input required type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} className="border border-white/15 bg-slate-950/60 px-3 py-2.5 text-white outline-none focus:border-cyan-300" /></label>
           {error ? <p role="alert" className="text-sm text-rose-300">{error}</p> : null}
           <button disabled={loading} className="bg-cyan-400 px-4 py-2.5 font-semibold text-slate-950 hover:bg-cyan-300 disabled:opacity-50">{loading ? "Ingresando..." : "Entrar"}</button>
