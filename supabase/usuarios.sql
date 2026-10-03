@@ -1,10 +1,9 @@
 -- Ejecutar en el SQL Editor del proyecto Supabase.
-CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 
 CREATE TABLE IF NOT EXISTS public.usuarios (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   nombre TEXT NOT NULL CHECK (char_length(trim(nombre)) BETWEEN 1 AND 120),
-  email TEXT NOT NULL,
+  email TEXT NOT NULL CHECK (email = lower(trim(email))),
   password_hash TEXT NOT NULL,
   rol TEXT NOT NULL DEFAULT 'usuario'
     CHECK (rol IN ('admin', 'usuario', 'coordinador')),
@@ -35,6 +34,10 @@ CREATE TRIGGER trg_usuarios_updated_at
 BEFORE UPDATE ON public.usuarios
 FOR EACH ROW
 EXECUTE FUNCTION public.usuarios_set_updated_at();
+
+GRANT ALL ON TABLE public.usuarios TO service_role;
+
+NOTIFY pgrst, 'reload schema';
 
 -- No se crean políticas para anon/authenticated: la tabla debe consultarse
 -- desde un backend confiable, nunca exponiendo la service_role key al cliente.

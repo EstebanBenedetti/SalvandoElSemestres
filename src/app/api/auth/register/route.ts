@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { createUser, sanitizeUser } from "@/lib/auth/local-auth";
 
 export async function POST(request: Request) {
@@ -7,9 +8,7 @@ export async function POST(request: Request) {
     const nombre = String(body.nombre ?? "").trim();
     const email = String(body.email ?? "").trim().toLowerCase();
     const password = String(body.password ?? "");
-    const rol = String(body.rol ?? "usuario");
-
-    if (!nombre || !email || !password) {
+    if (!nombre || nombre.length > 120 || !z.email().safeParse(email).success || password.length < 8) {
       return NextResponse.json({ success: false, error: "Nombre, email y contraseña son requeridos." }, { status: 400 });
     }
 
@@ -17,22 +16,16 @@ export async function POST(request: Request) {
       nombre,
       email,
       password,
-      rol: rol === "admin" || rol === "coordinador" ? rol : "usuario",
+      rol: "usuario",
       activo: true,
     });
 
     return NextResponse.json({ success: true, data: sanitizeUser({
-      id: user.id,
-      nombre: user.nombre,
-      email: user.email,
+      ...user,
       passwordHash: "",
-      rol: user.rol,
-      activo: user.activo,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
     }) }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "No se pudo crear el usuario.";
-    return NextResponse.json({ success: false, error: message }, { status: 400 });
+    return NextResponse.json({ success: false, error: message }, { status: message.includes("Ya existe") ? 409 : 500 });
   }
 }

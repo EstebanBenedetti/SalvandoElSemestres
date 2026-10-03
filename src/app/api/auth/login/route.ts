@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createToken, findUserByEmail, sanitizeUser, verifyCredentials } from "@/lib/auth/local-auth";
+import { createToken, findUserByEmail, recordSuccessfulLogin, sanitizeUser, verifyCredentials } from "@/lib/auth/local-auth";
 
 export async function POST(request: Request) {
   try {
@@ -11,10 +11,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Email y contraseña son requeridos." }, { status: 400 });
     }
 
-    const user = await findUserByEmail(email);
-    if (!user || !(await verifyCredentials(email, password))) {
+    if (!(await verifyCredentials(email, password))) {
       return NextResponse.json({ success: false, error: "Credenciales inválidas." }, { status: 401 });
     }
+
+    const user = await findUserByEmail(email);
+    if (!user || !user.activo) {
+      return NextResponse.json({ success: false, error: "Credenciales inválidas." }, { status: 401 });
+    }
+    await recordSuccessfulLogin(user.id);
 
     const token = createToken({
       id: user.id,
@@ -47,7 +52,7 @@ export async function POST(request: Request) {
     response.cookies.set("auth_token", token, {
       httpOnly: true,
       sameSite: "lax",
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: 60 * 60 * 24,
     });
