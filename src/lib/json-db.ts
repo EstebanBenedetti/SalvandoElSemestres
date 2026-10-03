@@ -21,7 +21,9 @@ export class ReadOnlyError extends Error {
 }
 
 const locks = new Map<string, Promise<void>>();
-const dataDirectory = path.resolve(process.env.DATA_DIR ?? path.join(process.cwd(), "data"));
+const dataDirectory = process.env.NODE_ENV === "production"
+  ? path.join(process.cwd(), "data")
+  : process.env.DATA_DIR ?? path.join(process.cwd(), "data");
 
 function resolveCollectionPath(name: string): string {
   if (!/^[a-z0-9-]+$/.test(name)) {
