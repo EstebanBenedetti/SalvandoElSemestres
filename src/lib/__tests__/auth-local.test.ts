@@ -17,6 +17,7 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 import {
+  changePassword,
   createToken,
   createUser,
   findUserByEmail,
@@ -111,9 +112,12 @@ describe("auth local", () => {
   it("firma los tokens y rechaza modificaciones", async () => {
     const user = await createUser({ nombre: "Token", email: "token@local.test", password: "secreto123" });
     const token = createToken({ ...user, passwordHash: "" });
+    const [header, payload, signature] = token.split(".");
+    if (!header || !payload || !signature) throw new Error("El token generado no tiene el formato esperado.");
+    const modifiedSignature = `${signature[0] === "A" ? "B" : "A"}${signature.slice(1)}`;
 
     expect(verifyToken(token)?.sub).toBe(user.id);
-    expect(verifyToken(`${token.slice(0, -1)}x`)).toBeNull();
+    expect(verifyToken(`${header}.${payload}.${modifiedSignature}`)).toBeNull();
   });
 
   it("actualiza la fecha del último inicio de sesión", async () => {
@@ -121,5 +125,22 @@ describe("auth local", () => {
     await recordSuccessfulLogin(user.id);
 
     expect(mocks.rows[0]?.ultimo_login).toEqual(expect.any(String));
+  });
+
+  it("reemplaza la contraseña del usuario y permite iniciar sesión con la nueva", async () => {
+    const user = await createUser({ nombre: "Cambio", email: "cambio@local.test", password: "anterior123" });
+
+    await expect(changePassword(user.id, "anterior123", "nueva-clave-456")).resolves.toBe("updated");
+    await expect(verifyCredentials(user.email, "anterior123")).resolves.toBe(false);
+    await expect(verifyCredentials(user.email, "nueva-clave-456")).resolves.toBe(true);
+  });
+
+  it("no cambia la contraseña cuando la actual es incorrecta", async () => {
+    const user = await createUser({ nombre: "Cambio", email: "cambio@local.test", password: "anterior123" });
+    const originalHash = mocks.rows[0]?.password_hash;
+
+    await expect(changePassword(user.id, "incorrecta", "nueva-clave-456")).resolves.toBe("invalid-current-password");
+    expect(mocks.rows[0]?.password_hash).toBe(originalHash);
+    await expect(verifyCredentials(user.email, "anterior123")).resolves.toBe(true);
   });
 });

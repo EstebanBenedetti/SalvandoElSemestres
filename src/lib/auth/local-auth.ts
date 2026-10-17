@@ -164,6 +164,24 @@ export async function recordSuccessfulLogin(userId: string): Promise<void> {
   if (error) throw new Error("No se pudo actualizar el último inicio de sesión.");
 }
 
+export async function changePassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<"updated" | "invalid-current-password"> {
+  const user = await findStoredUser("id", userId);
+  if (!user?.activo || !verifyPassword(currentPassword, user.passwordHash)) {
+    return "invalid-current-password";
+  }
+
+  const { error } = await getSupabaseAdmin()
+    .from("usuarios")
+    .update({ password_hash: hashPassword(newPassword) })
+    .eq("id", userId);
+  if (error) throw new Error("No se pudo actualizar la contraseña.");
+  return "updated";
+}
+
 export async function listUsers(): Promise<LocalUser[]> {
   const { data, error } = await getSupabaseAdmin()
     .from("usuarios")
