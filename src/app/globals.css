@@ -5,6 +5,11 @@
   --foreground: #f8fafc;
 }
 
+:root[data-theme="light"] {
+  --background: #eef6f7;
+  --foreground: #10212b;
+}
+
 * { box-sizing: border-box; }
 
 body {

@@ -1,39 +1,78 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LoginForm } from "./LoginForm";
 
-const { push } = vi.hoisted(() => ({
+const { push, refresh, replace } = vi.hoisted(() => ({
   push: vi.fn(),
+  refresh: vi.fn(),
+  replace: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push }),
+  useRouter: () => ({ push, refresh, replace }),
+}));
+
+vi.mock("next/link", () => ({
+  default: ({
+    children,
+    href,
+    ...props
+  }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 describe("LoginForm", () => {
   beforeEach(() => {
     push.mockClear();
+    refresh.mockClear();
+    replace.mockClear();
+    vi.stubGlobal("fetch", vi.fn());
   });
 
-  it("muestra errores debajo de los campos antes de enviar", () => {
-    render(<LoginForm />);
+  it("inicia sesión y redirige al panel según el rol", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true, data: { user: { rol: "alumno" } } }),
+    } as Response);
 
-    fireEvent.change(screen.getByLabelText("Correo electrónico"), {
-      target: { value: "correo-invalido" },
+    render(<LoginForm />);
+    fireEvent.change(screen.getByLabelText("Correo o usuario"), {
+      target: { value: "estudiante@correo.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Contraseña"), {
+      target: { value: "contrasena-segura" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Entrar" }));
 
-    expect(
-      screen.getByText("Escribe un correo electrónico válido."),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Escribe tu contraseña.")).toBeInTheDocument();
-    expect(push).not.toHaveBeenCalled();
+    expect(await screen.findByRole("button", { name: "Ingresando..." })).toBeDisabled();
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/auth/login",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          email: "estudiante@correo.com",
+          password: "contrasena-segura",
+        }),
+      }),
+    );
+    expect(replace).toHaveBeenCalledWith("/dashboard");
+    expect(refresh).toHaveBeenCalled();
   });
 
-  it("muestra un error con credenciales incorrectas", async () => {
-    render(<LoginForm />);
+  it("muestra el error devuelto por la API", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      json: async () => ({
+        success: false,
+        error: "Correo o contraseña incorrectos",
+      }),
+    } as Response);
 
-    fireEvent.change(screen.getByLabelText("Correo electrónico"), {
+    render(<LoginForm />);
+    fireEvent.change(screen.getByLabelText("Correo o usuario"), {
       target: { value: "alguien@correo.com" },
     });
     fireEvent.change(screen.getByLabelText("Contraseña"), {
@@ -41,28 +80,16 @@ describe("LoginForm", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Entrar" }));
 
-    expect(
-      screen.getByRole("button", { name: "Entrando..." }),
-    ).toBeDisabled();
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Correo o contraseña incorrectos",
     );
-    expect(push).not.toHaveBeenCalled();
   });
 
-  it("redirige a Hola Mundo con las credenciales de demostración", async () => {
-    render(<LoginForm />);
+  it("muestra la confirmación cuando viene del restablecimiento", () => {
+    render(<LoginForm contrasenaRestablecida />);
 
-    fireEvent.change(screen.getByLabelText("Correo electrónico"), {
-      target: { value: "demo@salvandoelsemestre.com" },
-    });
-    fireEvent.change(screen.getByLabelText("Contraseña"), {
-      target: { value: "demo1234" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Entrar" }));
-
-    await waitFor(() => {
-      expect(push).toHaveBeenCalledWith("/inicio");
-    });
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Tu contraseña se restableció correctamente. Ya puedes iniciar sesión.",
+    );
   });
 });
