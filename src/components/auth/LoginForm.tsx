@@ -1,10 +1,11 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 
-export function LoginForm() {
+export function LoginForm({ contrasenaRestablecida = false }: { contrasenaRestablecida?: boolean }) {
   const router = useRouter();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -36,9 +37,17 @@ export function LoginForm() {
       <div className="mx-auto max-w-md border border-white/10 p-6 sm:p-8">
         <p className="font-mono text-sm text-cyan-300">CUENTA</p>
         <h1 className="mt-2 font-sans text-3xl font-bold">Iniciar sesión</h1>
+        {contrasenaRestablecida ? (
+          <p role="status" className="mt-4 text-sm text-emerald-300">
+            Tu contraseña se restableció correctamente. Ya puedes iniciar sesión.
+          </p>
+        ) : null}
         <form className="mt-7 grid gap-5" onSubmit={submit}>
           <label className="grid gap-1.5 text-sm text-slate-300">Correo o usuario<input required type="text" autoComplete="username" value={identifier} onChange={(event) => setIdentifier(event.target.value)} className="border border-white/15 bg-slate-950/60 px-3 py-2.5 text-white outline-none focus:border-cyan-300" /></label>
           <label className="grid gap-1.5 text-sm text-slate-300">Contraseña<input required type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} className="border border-white/15 bg-slate-950/60 px-3 py-2.5 text-white outline-none focus:border-cyan-300" /></label>
+          <Link href="/recuperar-contrasena" className="text-sm text-cyan-300 underline">
+            ¿Olvidaste tu contraseña?
+          </Link>
           {error ? <p role="alert" className="text-sm text-rose-300">{error}</p> : null}
           <button disabled={loading} className="bg-cyan-400 px-4 py-2.5 font-semibold text-slate-950 hover:bg-cyan-300 disabled:opacity-50">{loading ? "Ingresando..." : "Entrar"}</button>
         </form>

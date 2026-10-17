@@ -22,8 +22,10 @@ import {
   createUser,
   findUserByEmail,
   findUserByLogin,
+  hashPassword,
   recordSuccessfulLogin,
   verifyCredentials,
+  verifyPassword,
   verifyToken,
 } from "@/lib/auth/local-auth";
 
@@ -142,5 +144,14 @@ describe("auth local", () => {
     await expect(changePassword(user.id, "incorrecta", "nueva-clave-456")).resolves.toBe("invalid-current-password");
     expect(mocks.rows[0]?.password_hash).toBe(originalHash);
     await expect(verifyCredentials(user.email, "anterior123")).resolves.toBe(true);
+  });
+
+  it("verifica hashes bcrypt sin perder compatibilidad con PBKDF2", async () => {
+    const bcryptHash = await (await import("bcryptjs")).default.hash("bcrypt-clave-123", 4);
+    const pbkdfHash = hashPassword("secreto123");
+
+    await expect(verifyPassword("bcrypt-clave-123", bcryptHash)).resolves.toBe(true);
+    await expect(verifyPassword("otra-clave", bcryptHash)).resolves.toBe(false);
+    await expect(verifyPassword("secreto123", pbkdfHash)).resolves.toBe(true);
   });
 });

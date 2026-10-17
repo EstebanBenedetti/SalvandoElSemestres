@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import bcrypt from "bcryptjs";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import type { UserRecord } from "@data/_schema/user.schema";
 
@@ -27,8 +28,12 @@ export function hashPassword(password: string): string {
   return `${salt}:${hash}`;
 }
 
-export function verifyPassword(password: string, passwordHash: string): boolean {
-  if (!password || !passwordHash || !passwordHash.includes(":")) return false;
+export async function verifyPassword(password: string, passwordHash: string): Promise<boolean> {
+  if (!password || !passwordHash) return false;
+  if (/^\$2[aby]\$\d{2}\$/.test(passwordHash)) {
+    return bcrypt.compare(password, passwordHash);
+  }
+  if (!passwordHash.includes(":")) return false;
   const [salt, hash, extra] = passwordHash.split(":");
   if (!salt || !hash || extra || !/^[a-f\d]{32}$/i.test(salt) || !/^[a-f\d]{128}$/i.test(hash)) return false;
   const candidate = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
@@ -153,7 +158,7 @@ export async function verifyCredentials(identifier: string, password: string): P
   const value = identifier.trim();
   const isEmail = value.includes("@");
   const user = await findStoredUser(isEmail ? "email" : "nombre", isEmail ? value.toLowerCase() : value);
-  return Boolean(user?.activo && verifyPassword(password, user.passwordHash));
+  return Boolean(user?.activo && (await verifyPassword(password, user.passwordHash)));
 }
 
 export async function recordSuccessfulLogin(userId: string): Promise<void> {
@@ -170,7 +175,7 @@ export async function changePassword(
   newPassword: string,
 ): Promise<"updated" | "invalid-current-password"> {
   const user = await findStoredUser("id", userId);
-  if (!user?.activo || !verifyPassword(currentPassword, user.passwordHash)) {
+  if (!user?.activo || !(await verifyPassword(currentPassword, user.passwordHash))) {
     return "invalid-current-password";
   }
 
