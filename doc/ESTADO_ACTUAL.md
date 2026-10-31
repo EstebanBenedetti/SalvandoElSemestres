@@ -179,11 +179,9 @@ Vitest (`vitest run`), con configuración en `vitest.config.ts`. Las 24 pruebas 
 
 ## 11. Conflictos y estado relacionado con el plan
 
-- `src/app/notas/`: no existe.
-- `src/app/api/notas/`: no existe.
-- `src/lib/dataService.ts`: conserva recuperación de contraseñas y reexporta los casos de uso y tipos de NotaFlux.
 - `src/app/notas/`: aún no existe; P06 implementará la interfaz.
-- `src/app/api/notas/`: actualmente incluye la sesión; P05 añadirá las rutas de operaciones.
+- `src/app/api/notas/`: dispone de sesión, estudiantes, detalle, cortes y grupo.
+- `src/lib/dataService.ts`: conserva recuperación de contraseñas y reexporta los casos de uso y tipos de NotaFlux.
 - `src/components/ui/`: existe, con componentes UI propios (Badge, Button, Card, Container, Input y Spinner).
 - `src/app/page.tsx`: código propio de autenticación; no es la plantilla de Next.js.
 - Antes de P01, los SQL versionados localmente no definían `estudiantes` ni `cortes`; solo definían `usuarios` y `restablecimientos_contrasena`.
@@ -227,7 +225,7 @@ Vitest (`vitest run`), con configuración en `vitest.config.ts`. Las 24 pruebas 
 - Build, pruebas y type-check pasan.
 - La comprobación manual autenticada de `GET /api/notas/sesion` respondió HTTP 200. `/notas` aún muestra 404 hasta que P06 implemente su interfaz.
 
-## 17. Acceso a datos y casos de uso (P04)
+## 17. Acceso a datos y API (P04–P05)
 
 - Implementados listados, creación, consulta de historial y desactivación de estudiantes; registro y listado cronológico de cortes; y cálculo de todos los empates en los extremos del grupo.
 - La fachada `src/lib/dataService.ts` reexporta casos de uso y tipos sin exponer SQL a las rutas.
@@ -235,3 +233,7 @@ Vitest (`vitest run`), con configuración en `vitest.config.ts`. Las 24 pruebas 
 - `scripts/cargar-demo.ts` carga cinco estudiantes de demostración con siete cortes; Demo Beto y Demo Elena empatan en el máximo 5.00.
 - `npm.cmd run probar:flujo`: 14 OK, 0 fallas. `npm.cmd run db:demo`: completado. La consulta de listado filtrada por “Demo” devolvió cinco estudiantes, todos con último corte; máximo dos cortes por estudiante.
 - `npm.cmd run build`: correcto. `npm.cmd test`: 44 pruebas pasaron. `npm.cmd run type-check`: correcto.
+- P05 añade `GET/POST /api/notas/estudiantes`, `GET/PATCH /api/notas/estudiantes/[id]`, `GET/POST /api/notas/estudiantes/[id]/cortes` y `GET /api/notas/grupo`. Todas requieren sesión, son dinámicas, validan los parámetros y usan respuestas `no-store`.
+- Verificación HTTP sin cookie: `GET /api/notas/estudiantes` y `POST /api/notas/estudiantes/<uuid>/cortes` respondieron 401 `NO_AUTORIZADO`.
+- Verificación autenticada en el navegador: lista demo 200 con cinco estudiantes y sus últimos promedios; detalle Demo Ana 200 con historial de dos cortes; POST de corte con nota 6.0 respondió 400 `DATOS_INVALIDOS`.
+- `/notas` sigue mostrando 404 hasta P06; ese 404 no es un error de las rutas API.

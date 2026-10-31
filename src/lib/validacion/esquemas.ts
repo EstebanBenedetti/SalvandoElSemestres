@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const esquemaId = z.uuid();
+
 export const esquemaNota = z.coerce
   .number({ error: "La nota debe ser un número." })
   .min(0, { error: "La nota debe estar entre 0.0 y 5.0." })

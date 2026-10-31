@@ -7,7 +7,7 @@
 | P02 Reglas de negocio | completado | correcto | 44 pasaron (24 reglas + 20 existentes) | 2026-10-31 |
 | P03 Servidor | completado | correcto | 44 pasaron | 2026-10-31 |
 | P04 Datos | completado | correcto | 44 pasaron; flujo BD 14 OK, 0 fallas | 2026-10-31 |
-| P05 API | pendiente | | | |
+| P05 API | completado | correcto | 44 pasaron; validación API autenticada/no autenticada correcta | 2026-10-31 |
 | P06 Interfaz: estudiantes e historial | pendiente | | | |
 | P07 Registro de corte y aceptación | pendiente | | | |
 | P08 Opcional: máximo y mínimo del grupo | pendiente | | | |
@@ -79,4 +79,20 @@
 - `npm.cmd test`: 8 archivos y 44 pruebas pasaron.
 - `npm.cmd run build`: correcto; Next.js compiló, completó TypeScript y optimizó la aplicación.
 - `lib/datos/` es la única capa que importa `lib/db/conexion.ts`; las rutas mantienen la fachada `dataService`.
-- La fase 4 continúa abierta hasta completar P05.
+- P05 completa y cierra la fase 4.
+
+### P05 · API protegida
+
+- Archivos creados: `src/app/api/notas/estudiantes/route.ts`, `src/app/api/notas/estudiantes/[id]/route.ts`, `src/app/api/notas/estudiantes/[id]/cortes/route.ts`, `src/app/api/notas/grupo/route.ts`.
+- Archivos modificados: `src/lib/validacion/esquemas.ts`, `doc/ESTADO_ACTUAL.md`, `doc/ESTADO_EJECUCION.md`.
+- Todos los handlers usan `conManejoDeErrores`, llaman `exigirSesion()` como primera operación, validan cuerpos/filtros y responden con `Cache-Control: no-store`; los POST válidos responden 201. Los IDs dinámicos se validan como UUID.
+- Verificación sin sesión: GET de estudiantes y POST de cortes respondieron HTTP 401 `NO_AUTORIZADO`.
+- Verificación autenticada en navegador:
+  - GET `/api/notas/estudiantes`: HTTP 200; cinco estudiantes demo con total de cortes y promedio/resultado más reciente.
+  - GET `/api/notas/estudiantes/737cd269-f375-45dc-bfcc-4fb0e8e72a98`: HTTP 200; detalle de Demo Ana y dos cortes en orden descendente.
+  - POST al endpoint de cortes con `parcial1: 6`: HTTP 400, código `DATOS_INVALIDOS`; no se insertó ningún corte.
+- `npm.cmd run type-check`: correcto.
+- `npm.cmd run lint -- src/app/api/notas src/lib/validacion/esquemas.ts`: correcto.
+- `npm.cmd test`: 8 archivos y 44 pruebas pasaron.
+- `npm.cmd run build`: correcto; Next.js incluye las cinco rutas API NotaFlux.
+- El 404 de `/notas` tras iniciar sesión es esperado hasta P06; no afecta las rutas API. Fase 4 cerrada.
