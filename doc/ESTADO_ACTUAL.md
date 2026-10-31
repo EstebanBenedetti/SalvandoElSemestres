@@ -13,6 +13,8 @@ Auditoría realizada el 2026-10-31 para P00. Los valores de las variables de ent
 | pg | `^8.23.1` (añadido en P01; no estaba instalado en P00) |
 | zod | `^4.6.2` |
 | @supabase/supabase-js | `^2.117.2` |
+| server-only | `^0.0.1` (añadido en P04) |
+| tsx | `^4.23.15` (añadido en P04) |
 | jose | No instalado |
 | bcryptjs | `^3.0.3` |
 | vitest | `^4.1.11` |
@@ -33,6 +35,9 @@ Auditoría realizada el 2026-10-31 para P00. Los valores de las variables de ent
 | `test:coverage` | `vitest run --coverage` |
 | `db:migrar` | `node --env-file=.env.local scripts/migrar.mjs` (añadido en P01) |
 | `db:verificar` | `node --env-file=.env.local scripts/verificar-bd.mjs` (añadido en P01) |
+| `db:limpiar` | `node --env-file=.env.local scripts/limpiar-prueba.mjs` (añadido en P04; admite `--prueba` y `--demo`) |
+| `probar:flujo` | `node --conditions=react-server --env-file=.env.local --import tsx scripts/probar-flujo.ts` (añadido en P04) |
+| `db:demo` | `node --conditions=react-server --env-file=.env.local --import tsx scripts/cargar-demo.ts` (añadido en P04) |
 
 Los dos scripts de base de datos se añadieron en P01.
 
@@ -77,6 +82,7 @@ src/
 │   ├── auth/local-auth.ts
 │   ├── auth/sesion.ts
 │   ├── config/notas.ts
+│   ├── datos/{cortes,errores,estudiantes,grupo,tipos}.ts
 │   ├── db/conexion.ts
 │   ├── formato.ts
 │   ├── http/respuestas.ts
@@ -104,7 +110,10 @@ supabase/
     └── 0002_notas_vista_seguridad.sql
 
 scripts/
+├── cargar-demo.ts
+├── limpiar-prueba.mjs
 ├── migrar.mjs
+├── probar-flujo.ts
 ├── tokenVercel.mjs
 └── verificar-bd.mjs
 
@@ -135,7 +144,8 @@ En `tsconfig.json`:
 - Cliente existente: `src/lib/supabase/server.ts` crea y reutiliza un cliente administrativo de `@supabase/supabase-js` con `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`.
 - `pg` (`^8.23.1`) y `@types/pg` (`^8.23.1`) se añadieron en P01.
 - `src/lib/db/conexion.ts` exporta un pool compartido, `consultar` y `conTransaccion`; configura parsers para fechas, timestamps, bigint y numeric, y usa `POSTGRES_URL_NON_POOLING`.
-- `src/lib/dataService.ts` sí existe, pero implementa operaciones de recuperación de contraseña mediante Supabase; no es aún la fachada de datos de notas.
+- `src/lib/dataService.ts` conserva las operaciones de recuperación de contraseña y ahora también es la fachada de datos de NotaFlux.
+- `src/lib/datos/` concentra las consultas y casos de uso; solo esos módulos importan `src/lib/db/conexion.ts`.
 
 ## 7. Migraciones
 
@@ -171,7 +181,9 @@ Vitest (`vitest run`), con configuración en `vitest.config.ts`. Las 24 pruebas 
 
 - `src/app/notas/`: no existe.
 - `src/app/api/notas/`: no existe.
-- `src/lib/dataService.ts`: existe, pero solo cubre la funcionalidad existente de recuperación de contraseñas; debe ampliarse con cautela.
+- `src/lib/dataService.ts`: conserva recuperación de contraseñas y reexporta los casos de uso y tipos de NotaFlux.
+- `src/app/notas/`: aún no existe; P06 implementará la interfaz.
+- `src/app/api/notas/`: actualmente incluye la sesión; P05 añadirá las rutas de operaciones.
 - `src/components/ui/`: existe, con componentes UI propios (Badge, Button, Card, Container, Input y Spinner).
 - `src/app/page.tsx`: código propio de autenticación; no es la plantilla de Next.js.
 - Antes de P01, los SQL versionados localmente no definían `estudiantes` ni `cortes`; solo definían `usuarios` y `restablecimientos_contrasena`.
@@ -199,7 +211,7 @@ Vitest (`vitest run`), con configuración en `vitest.config.ts`. Las 24 pruebas 
 - `npm.cmd run db:migrar`: aplicó las dos migraciones; una segunda ejecución omitió ambas, confirmando idempotencia.
 - `npm.cmd run db:verificar`: existencia de tablas/vista, restricciones, índice único, RLS y siete casos transaccionales verificados; total de fallas: 0. La prueba terminó en `ROLLBACK`.
 - El cliente `pg` indicó que la URL incluye `sslmode`; los scripts quitan ese parámetro para respetar `ssl: { rejectUnauthorized: false }` especificado en el plan.
-- La redirección de login existente aún apunta a `/usuarios` o `/dashboard`. No se cambió en P01: la ruta `/notas` todavía no existe y cambiarla ahora dejaría el login enviando a los usuarios a una página 404. La integración debe realizarse cuando la ruta del módulo esté implementada y protegida.
+- P03 alineó la redirección de login con `/notas`, protegida por `src/proxy.ts`; la interfaz de esa ruta llegará en P06.
 
 ## 15. Reglas de negocio (P02)
 
@@ -213,4 +225,13 @@ Vitest (`vitest run`), con configuración en `vitest.config.ts`. Las 24 pruebas 
 - Implementados `src/lib/auth/sesion.ts`, `src/proxy.ts`, `src/lib/db/conexion.ts`, `src/lib/http/respuestas.ts`, `src/lib/validacion/esquemas.ts`, `src/lib/formato.ts` y `src/app/api/notas/sesion/route.ts`.
 - `GET /api/notas/sesion` sin cookie devuelve 401 y la respuesta incluye `Cache-Control: no-store`; `/notas` redirige al login.
 - Build, pruebas y type-check pasan.
-- Pendiente la comprobación manual autenticada de `GET /api/notas/sesion` (HTTP 200); esperar confirmación del usuario antes de cerrar P03.
+- La comprobación manual autenticada de `GET /api/notas/sesion` respondió HTTP 200. `/notas` aún muestra 404 hasta que P06 implemente su interfaz.
+
+## 17. Acceso a datos y casos de uso (P04)
+
+- Implementados listados, creación, consulta de historial y desactivación de estudiantes; registro y listado cronológico de cortes; y cálculo de todos los empates en los extremos del grupo.
+- La fachada `src/lib/dataService.ts` reexporta casos de uso y tipos sin exponer SQL a las rutas.
+- `scripts/probar-flujo.ts` valida 14 casos contra la base real y limpia datos de prueba/demo antes y después. `scripts/limpiar-prueba.mjs` elimina primero cortes y luego estudiantes según los prefijos seleccionados.
+- `scripts/cargar-demo.ts` carga cinco estudiantes de demostración con siete cortes; Demo Beto y Demo Elena empatan en el máximo 5.00.
+- `npm.cmd run probar:flujo`: 14 OK, 0 fallas. `npm.cmd run db:demo`: completado. La consulta de listado filtrada por “Demo” devolvió cinco estudiantes, todos con último corte; máximo dos cortes por estudiante.
+- `npm.cmd run build`: correcto. `npm.cmd test`: 44 pruebas pasaron. `npm.cmd run type-check`: correcto.

@@ -6,7 +6,7 @@
 | P01 Base de datos | completado | correcto | 20 unitarios + 7 casos de BD; 0 fallas de BD | 2026-10-31 |
 | P02 Reglas de negocio | completado | correcto | 44 pasaron (24 reglas + 20 existentes) | 2026-10-31 |
 | P03 Servidor | completado | correcto | 44 pasaron | 2026-10-31 |
-| P04 Datos | pendiente | | | |
+| P04 Datos | completado | correcto | 44 pasaron; flujo BD 14 OK, 0 fallas | 2026-10-31 |
 | P05 API | pendiente | | | |
 | P06 Interfaz: estudiantes e historial | pendiente | | | |
 | P07 Registro de corte y aceptación | pendiente | | | |
@@ -66,3 +66,17 @@
   - `git diff --check`: correcto.
 - Cambios del login: el formulario y la raíz redirigen a `/notas`; la prueba existente verifica el nuevo destino. No se modificaron otros flujos de autenticación.
 - La pantalla `/notas` devuelve 404 hasta que P06 implemente la interfaz; es el comportamiento temporal previsto por el prompt.
+
+### P04 · Acceso a datos y casos de uso
+
+- Archivos creados: `src/lib/datos/tipos.ts`, `src/lib/datos/errores.ts`, `src/lib/datos/estudiantes.ts`, `src/lib/datos/cortes.ts`, `src/lib/datos/grupo.ts`, `scripts/limpiar-prueba.mjs`, `scripts/probar-flujo.ts`, `scripts/cargar-demo.ts`.
+- Archivos modificados: `src/lib/dataService.ts`, `package.json`, `package-lock.json`, `doc/ESTADO_ACTUAL.md`, `doc/ESTADO_EJECUCION.md`.
+- Dependencias instaladas: `tsx` como dependencia de desarrollo y `server-only` como dependencia de ejecución. Los scripts TypeScript usan Node con la condición `react-server` para conservar el marcador de módulos exclusivos del servidor.
+- `npm.cmd run probar:flujo`: **14 OK, 0 fallas**. Se validaron duplicados, entradas inválidas, promedios, historial, extremos y empate, exclusión de desactivados y `ON DELETE RESTRICT`. La limpieza final eliminó 5 cortes y 3 estudiantes de prueba.
+- `npm.cmd run db:demo`: correcto. Cargó cinco estudiantes y siete cortes; promedios más recientes: Demo Ana 3.00 (Perdió), Demo Beto 5.00 (Aprobó), Demo Carla 3.25 (Perdió), Demo Diego 2.00 (Perdió) y Demo Elena 5.00 (Aprobó). Beto y Elena empatan en el máximo.
+- Verificación adicional de `listarEstudiantes({ busqueda: "Demo" })`: cinco filas, cinco con último corte, máximo dos cortes por estudiante.
+- `npm.cmd run type-check`: correcto.
+- `npm.cmd test`: 8 archivos y 44 pruebas pasaron.
+- `npm.cmd run build`: correcto; Next.js compiló, completó TypeScript y optimizó la aplicación.
+- `lib/datos/` es la única capa que importa `lib/db/conexion.ts`; las rutas mantienen la fachada `dataService`.
+- La fase 4 continúa abierta hasta completar P05.

@@ -85,3 +85,20 @@ export async function completarRestablecimiento(
   if (error) throw new Error("No se pudo completar el restablecimiento.");
   return data;
 }
+
+export { obtenerSesion } from "@/lib/auth/sesion";
+export {
+  crearEstudiante,
+  desactivarEstudiante,
+  listarEstudiantes,
+  obtenerEstudiante,
+} from "@/lib/datos/estudiantes";
+export { listarCortes, registrarCorte } from "@/lib/datos/cortes";
+export { obtenerExtremosGrupo } from "@/lib/datos/grupo";
+export type {
+  Corte,
+  DatosCorte,
+  DetalleEstudiante,
+  ExtremosGrupo,
+  FilaEstudiante,
+} from "@/lib/datos/tipos";
