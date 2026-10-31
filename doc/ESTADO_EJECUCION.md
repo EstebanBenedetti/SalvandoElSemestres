@@ -8,7 +8,7 @@
 | P03 Servidor | completado | correcto | 44 pasaron | 2026-10-31 |
 | P04 Datos | completado | correcto | 44 pasaron; flujo BD 14 OK, 0 fallas | 2026-10-31 |
 | P05 API | completado | correcto | 44 pasaron; validación API autenticada/no autenticada correcta | 2026-10-31 |
-| P06 Interfaz: estudiantes e historial | pendiente | | | |
+| P06 Interfaz: estudiantes e historial | completado | correcto | 44 pasaron; flujos principales verificados en navegador | 2026-10-31 |
 | P07 Registro de corte y aceptación | pendiente | | | |
 | P08 Opcional: máximo y mínimo del grupo | pendiente | | | |
 
@@ -96,3 +96,23 @@
 - `npm.cmd test`: 8 archivos y 44 pruebas pasaron.
 - `npm.cmd run build`: correcto; Next.js incluye las cinco rutas API NotaFlux.
 - El 404 de `/notas` tras iniciar sesión es esperado hasta P06; no afecta las rutas API. Fase 4 cerrada.
+
+### P06 · Interfaz base, estudiantes e historial
+
+- Archivos creados:
+  - UI compartida: `src/components/ui/{Aviso,Boton,Campo,EstadoVacio,Insignia,Modal,Tarjeta}.tsx`.
+  - NotaFlux: `src/components/notas/{DesactivarEstudiante,FormularioEstudiante,InsigniaResultado,NavegacionNotas,TablaEstudiantes,TablaHistorial}.tsx`.
+  - Rutas: `src/app/notas/layout.tsx`, `src/app/notas/page.tsx`, `src/app/notas/estudiantes/nuevo/page.tsx`, `src/app/notas/estudiantes/[id]/page.tsx`.
+- Archivos modificados: `src/app/globals.css`, `doc/ESTADO_ACTUAL.md`, `doc/ESTADO_EJECUCION.md`.
+- Tokens de color de NotaFlux añadidos a `@theme` de Tailwind 4 sin quitar estilos globales existentes.
+- El layout valida sesión, muestra NotaFlux, correo del usuario y cierre de sesión; el menú móvil se abre y se cierra con su botón accesible.
+- La lista muestra estudiantes, cortes, promedio/resultado y fecha; la búsqueda se aplica tras 300 ms y se refleja en la URL. El diseño muestra tarjetas bajo 640 px.
+- El formulario cliente valida con `esquemaEstudiante`, crea el estudiante y navega al historial; un duplicado muestra `NOMBRE_DUPLICADO`.
+- Historial con fechas y notas `es-CO`, estados vacío/activo/inactivo y desactivación mediante modal con Escape, foco y confirmación; tras actualizar se conserva el historial.
+- Verificación en navegador autenticado: lista demo con cinco estudiantes; búsqueda `Demo Carla` filtró la lista y actualizó la URL; consulta sin resultados mostró el estado vacío; se creó `Prueba Interfaz P06`, el historial inició vacío, se confirmó el rechazo del duplicado y se probó la desactivación. El registro temporal se eliminó de forma específica, sin cortes asociados.
+- Verificación responsive a 390 px: aparece el botón de menú móvil, se navega desde el menú y la tabla de escritorio se sustituye por tarjetas; a 1280 px se muestra la tabla.
+- `npm.cmd run type-check`: correcto.
+- `npm.cmd run lint -- src/app/notas src/components/notas src/components/ui/{componentes nuevos}`: correcto.
+- `npm.cmd test`: 8 archivos y 44 pruebas pasaron.
+- `npm.cmd run build`: correcto; Next.js incluye `/notas`, `/notas/estudiantes/nuevo` y `/notas/estudiantes/[id]`.
+- P07 queda como el siguiente prompt para completar registro de cortes y aceptación.

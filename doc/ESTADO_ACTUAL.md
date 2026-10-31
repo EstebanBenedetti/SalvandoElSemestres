@@ -60,7 +60,12 @@ src/
 │   │   ├── correo/prueba/
 │   │   ├── data/[collection]/
 │   │   ├── health/
-│   │   └── notas/sesion/
+│   │   └── notas/{estudiantes,grupo,sesion}/
+│   ├── notas/
+│   │   ├── estudiantes/[id]/
+│   │   ├── estudiantes/nuevo/
+│   │   ├── layout.tsx
+│   │   └── page.tsx
 │   ├── inicio/
 │   ├── login/
 │   ├── prueba-correo/
@@ -74,8 +79,9 @@ src/
 │   ├── correo/
 │   ├── home/
 │   ├── layout/
+│   ├── notas/
 │   ├── theme/
-│   ├── ui/
+│   ├── ui/{Aviso,Boton,Campo,EstadoVacio,Insignia,Modal,Tarjeta}.tsx
 │   └── users/
 ├── hooks/
 ├── lib/
@@ -135,7 +141,7 @@ En `tsconfig.json`:
 - Cookie: `auth_token`, `httpOnly`, `sameSite: "lax"`, ruta `/`, duración de 24 horas y `secure` en producción.
 - Lector/verificador: `verifyToken(token)` en `src/lib/auth/local-auth.ts` devuelve `AuthTokenPayload` (`sub`, `email`, `rol`, `exp`) o `null`. El adaptador `src/lib/auth/sesion.ts` expone `obtenerSesion()` y `exigirSesion()`; comprueba el JWT, consulta al usuario y no considera sesión válida a una cuenta inactiva.
 - Página de login: `/login`, en `src/app/(dashboard)/login/page.tsx`; el grupo `(dashboard)` no forma parte de la URL. La raíz `/` también presenta el formulario de login.
-- Redirección posterior al login: `src/components/auth/LoginForm.tsx` lleva a todos los roles a `/notas`; `src/app/page.tsx` hace lo mismo cuando ya existe una sesión válida. La página `/notas` se creará en P06.
+- Redirección posterior al login: `src/components/auth/LoginForm.tsx` lleva a todos los roles a `/notas`; `src/app/page.tsx` hace lo mismo cuando ya existe una sesión válida. P06 implementó la lista autenticada en `/notas`.
 - Protección: `src/proxy.ts` protege `/notas/:path*` y `/api/notas/:path*`; sin JWT válido, las páginas redirigen a `/login` y la API devuelve 401. Cada handler debe verificar además la sesión con `exigirSesion()`.
 - Cierre de sesión: `src/components/layout/AuthNav.tsx` hace `POST /api/auth/logout`; `src/app/api/auth/logout/route.ts` expira la cookie y el cliente navega a `/login`.
 
@@ -179,7 +185,7 @@ Vitest (`vitest run`), con configuración en `vitest.config.ts`. Las 24 pruebas 
 
 ## 11. Conflictos y estado relacionado con el plan
 
-- `src/app/notas/`: aún no existe; P06 implementará la interfaz.
+- `src/app/notas/`: incluye el listado, registro de estudiante y su historial (P06); registro de corte se agrega en P07.
 - `src/app/api/notas/`: dispone de sesión, estudiantes, detalle, cortes y grupo.
 - `src/lib/dataService.ts`: conserva recuperación de contraseñas y reexporta los casos de uso y tipos de NotaFlux.
 - `src/components/ui/`: existe, con componentes UI propios (Badge, Button, Card, Container, Input y Spinner).
@@ -236,4 +242,15 @@ Vitest (`vitest run`), con configuración en `vitest.config.ts`. Las 24 pruebas 
 - P05 añade `GET/POST /api/notas/estudiantes`, `GET/PATCH /api/notas/estudiantes/[id]`, `GET/POST /api/notas/estudiantes/[id]/cortes` y `GET /api/notas/grupo`. Todas requieren sesión, son dinámicas, validan los parámetros y usan respuestas `no-store`.
 - Verificación HTTP sin cookie: `GET /api/notas/estudiantes` y `POST /api/notas/estudiantes/<uuid>/cortes` respondieron 401 `NO_AUTORIZADO`.
 - Verificación autenticada en el navegador: lista demo 200 con cinco estudiantes y sus últimos promedios; detalle Demo Ana 200 con historial de dos cortes; POST de corte con nota 6.0 respondió 400 `DATOS_INVALIDOS`.
-- `/notas` sigue mostrando 404 hasta P06; ese 404 no es un error de las rutas API.
+- P06 implementó la interfaz de lista e historial; P07 añadirá la pantalla para registrar cortes.
+
+## 18. Interfaz de NotaFlux (P06)
+
+- Implementados tokens Tailwind 4 y componentes accesibles compartidos en `src/components/ui/`.
+- `src/components/notas/` contiene navegación responsive, insignias de resultado, listado/búsqueda, formulario de estudiante, tabla de historial y desactivación confirmada.
+- `src/app/notas/` contiene layout con sesión obligatoria, lista, registro de estudiante e historial. La lista refleja el filtro `busqueda` en la URL con 300 ms de espera y adapta filas a tarjetas por debajo de 640 px.
+- Las fechas se muestran en `es-CO` con zona `America/Bogota`; notas y promedios se muestran con dos decimales.
+- Verificación en navegador autenticado: login redirige a la lista; aparecen los cinco estudiantes demo; búsqueda filtra y actualiza la URL; no-resultados muestra su estado vacío; registro de un estudiante y rechazo de duplicado funcionan; el historial vacío se presenta con enlace; se probó desactivar y confirmar.
+- Verificación responsive a 390 px: menú móvil visible y operable, tarjetas de estudiantes visibles y tabla de escritorio oculta.
+- El estudiante temporal `Prueba Interfaz P06` se eliminó por su ID exacto tras verificar que no tenía cortes.
+- `npm.cmd run build`: correcto. `npm.cmd test`: 44 pruebas pasaron. Type-check y lint de archivos P06 correctos.
