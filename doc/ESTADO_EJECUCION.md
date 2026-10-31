@@ -5,7 +5,7 @@
 | P00 Auditoría | completado | correcto | no ejecutados (no requeridos por P00) | 2026-10-31 |
 | P01 Base de datos | completado | correcto | 20 unitarios + 7 casos de BD; 0 fallas de BD | 2026-10-31 |
 | P02 Reglas de negocio | completado | correcto | 44 pasaron (24 reglas + 20 existentes) | 2026-10-31 |
-| P03 Servidor | pendiente | | | |
+| P03 Servidor | completado | correcto | 44 pasaron | 2026-10-31 |
 | P04 Datos | pendiente | | | |
 | P05 API | pendiente | | | |
 | P06 Interfaz: estudiantes e historial | pendiente | | | |
@@ -51,3 +51,18 @@
 - Problemas y resolución: el repositorio ya tenía pruebas React que necesitan jsdom, por lo que Vitest se configuró con un proyecto Node para `tests/**/*.test.ts` y otro jsdom para mantener intactas y ejecutables las pruebas existentes.
 - Restricciones respetadas: no se modificaron `app/`, implementación del login ni archivos de base de datos.
 - Pendientes: continuar con P03, que integra estas reglas en las capas de servidor.
+
+### P03 · Infraestructura del servidor
+
+- Archivos creados: `src/lib/db/conexion.ts`, `src/lib/auth/sesion.ts`, `src/proxy.ts`, `src/lib/http/respuestas.ts`, `src/lib/validacion/esquemas.ts`, `src/lib/formato.ts`, `src/app/api/notas/sesion/route.ts`.
+- Archivos modificados: `src/app/page.tsx`, `src/components/auth/LoginForm.tsx`, `src/components/auth/LoginForm.test.tsx`, `doc/ESTADO_ACTUAL.md`, `doc/ESTADO_EJECUCION.md`.
+- Comandos y resultados:
+  - `npm.cmd run build`: correcto; Next.js reconoció `ƒ Proxy (Middleware)` y `/api/notas/sesion`.
+  - `npm.cmd test`: 8 archivos y 44 pruebas pasaron.
+  - `npm.cmd run type-check`: correcto.
+  - GET `/api/notas/sesion` sin cookie: 401 con JSON `NO_AUTORIZADO` y `Cache-Control: no-store`.
+  - GET `/notas` sin cookie: 307 a `/login?returnTo=%2Fnotas`.
+  - Después de iniciar sesión, GET `/api/notas/sesion`: HTTP 200 con la sesión autenticada.
+  - `git diff --check`: correcto.
+- Cambios del login: el formulario y la raíz redirigen a `/notas`; la prueba existente verifica el nuevo destino. No se modificaron otros flujos de autenticación.
+- La pantalla `/notas` devuelve 404 hasta que P06 implemente la interfaz; es el comportamiento temporal previsto por el prompt.

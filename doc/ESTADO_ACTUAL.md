@@ -54,7 +54,8 @@ src/
 │   │   ├── auth/{change-password,login,logout,me,recuperar,register,restablecer}/
 │   │   ├── correo/prueba/
 │   │   ├── data/[collection]/
-│   │   └── health/
+│   │   ├── health/
+│   │   └── notas/sesion/
 │   ├── inicio/
 │   ├── login/
 │   ├── prueba-correo/
@@ -74,9 +75,14 @@ src/
 ├── hooks/
 ├── lib/
 │   ├── auth/local-auth.ts
+│   ├── auth/sesion.ts
 │   ├── config/notas.ts
+│   ├── db/conexion.ts
+│   ├── formato.ts
+│   ├── http/respuestas.ts
 │   ├── reglas/{errores,estudiante,nota}.ts
 │   ├── supabase/server.ts
+│   ├── validacion/esquemas.ts
 │   ├── __tests__/
 │   ├── correo.ts
 │   ├── dataService.ts
@@ -87,7 +93,8 @@ src/
 │   ├── urlBase.ts
 │   └── utils.ts
 ├── modules/
-└── test/
+├── test/
+└── proxy.ts
 
 supabase/
 ├── restablecimientos_contrasena.sql
@@ -117,17 +124,17 @@ En `tsconfig.json`:
 - Mecanismo: JWT propio firmado con HMAC-SHA256 (`HS256`), no Supabase Auth. La firma usa `SUPABASE_JWT_SECRET`; la gestión/verificación está en `src/lib/auth/local-auth.ts`.
 - Usuarios: se consultan mediante el cliente administrativo de Supabase definido en `src/lib/supabase/server.ts`.
 - Cookie: `auth_token`, `httpOnly`, `sameSite: "lax"`, ruta `/`, duración de 24 horas y `secure` en producción.
-- Lector/verificador: `verifyToken(token)` en `src/lib/auth/local-auth.ts` devuelve `AuthTokenPayload` (`sub`, `email`, `rol`, `exp`) o `null`; no existe una función centralizada que lea la cookie y entregue una sesión. Las páginas leen la cookie y verifican el token por separado.
+- Lector/verificador: `verifyToken(token)` en `src/lib/auth/local-auth.ts` devuelve `AuthTokenPayload` (`sub`, `email`, `rol`, `exp`) o `null`. El adaptador `src/lib/auth/sesion.ts` expone `obtenerSesion()` y `exigirSesion()`; comprueba el JWT, consulta al usuario y no considera sesión válida a una cuenta inactiva.
 - Página de login: `/login`, en `src/app/(dashboard)/login/page.tsx`; el grupo `(dashboard)` no forma parte de la URL. La raíz `/` también presenta el formulario de login.
-- Redirección posterior al login: `src/components/auth/LoginForm.tsx:27` lleva a `/usuarios` para `admin` y a `/dashboard` para los demás roles. `src/app/page.tsx:12` aplica la misma decisión cuando ya existe una sesión. El plan NotaFlux requiere que el módulo termine usando `/notas`; ese ajuste está pendiente de P03.
-- Middleware/proxy: no existe `middleware.ts` ni `proxy.ts` (tampoco en `src/`). Las páginas actuales realizan sus verificaciones de forma local.
+- Redirección posterior al login: `src/components/auth/LoginForm.tsx` lleva a todos los roles a `/notas`; `src/app/page.tsx` hace lo mismo cuando ya existe una sesión válida. La página `/notas` se creará en P06.
+- Protección: `src/proxy.ts` protege `/notas/:path*` y `/api/notas/:path*`; sin JWT válido, las páginas redirigen a `/login` y la API devuelve 401. Cada handler debe verificar además la sesión con `exigirSesion()`.
 - Cierre de sesión: `src/components/layout/AuthNav.tsx` hace `POST /api/auth/logout`; `src/app/api/auth/logout/route.ts` expira la cookie y el cliente navega a `/login`.
 
 ## 6. Acceso a datos
 
 - Cliente existente: `src/lib/supabase/server.ts` crea y reutiliza un cliente administrativo de `@supabase/supabase-js` con `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`.
 - `pg` (`^8.23.1`) y `@types/pg` (`^8.23.1`) se añadieron en P01.
-- `scripts/migrar.mjs` y `scripts/verificar-bd.mjs` crean su propio pool para las tareas de base de datos; la conexión de aplicación `src/lib/db/conexion.ts` todavía no existe (se aborda en P03).
+- `src/lib/db/conexion.ts` exporta un pool compartido, `consultar` y `conTransaccion`; configura parsers para fechas, timestamps, bigint y numeric, y usa `POSTGRES_URL_NON_POOLING`.
 - `src/lib/dataService.ts` sí existe, pero implementa operaciones de recuperación de contraseña mediante Supabase; no es aún la fachada de datos de notas.
 
 ## 7. Migraciones
@@ -173,11 +180,12 @@ Vitest (`vitest run`), con configuración en `vitest.config.ts`. Las 24 pruebas 
 ## 12. Decisiones derivadas para continuar el plan
 
 - Ruta de login: `/login` (la ruta `/` también muestra el formulario).
-- Protección: usar `src/proxy.ts` en Next.js 16; aún no existe archivo de protección global. Mantener además la validación de sesión requerida por cada API según el plan.
+- Protección: `src/proxy.ts` en Next.js 16 protege `/notas/:path*` y `/api/notas/:path*`; cada API además valida la sesión explícitamente.
 - Migraciones: `supabase/migrations/` usa `0001_notas_tablas.sql` y `0002_notas_vista_seguridad.sql`; `scripts/migrar.mjs` aplica cada una en transacción y `_migrations` registra el estado.
 - Variable para `lib/db/conexion.ts`: `POSTGRES_URL_NON_POOLING`, existente en `.env.local`, configurada para conexión directa y documentada en `.env.example`.
 - Numeración inicial de las migraciones NotaFlux: `0001_notas_tablas.sql` y `0002_notas_vista_seguridad.sql`; no había numeración previa en `supabase/migrations/`.
 - Prefijo de imports para `lib`: `@/lib` (`@/*` resuelve a `src/*`).
+- Validación HTTP: `src/lib/validacion/esquemas.ts`; utilidades de respuesta: `src/lib/http/respuestas.ts`; formato colombiano de notas/fechas: `src/lib/formato.ts`.
 
 ## 13. Compilación de base
 
@@ -199,3 +207,10 @@ Vitest (`vitest run`), con configuración en `vitest.config.ts`. Las 24 pruebas 
 - Reglas puras en `src/lib/reglas/`; no importan `pg` ni `next`, no acceden a `process.env` ni leen el reloj.
 - `vitest.config.ts` separa las pruebas nuevas en Node de las pruebas preexistentes en jsdom.
 - Pruebas: 24 nuevos casos T-01 a T-24; el conjunto completo ejecuta 44 pruebas contando las 20 preexistentes.
+
+## 16. Infraestructura de servidor (P03)
+
+- Implementados `src/lib/auth/sesion.ts`, `src/proxy.ts`, `src/lib/db/conexion.ts`, `src/lib/http/respuestas.ts`, `src/lib/validacion/esquemas.ts`, `src/lib/formato.ts` y `src/app/api/notas/sesion/route.ts`.
+- `GET /api/notas/sesion` sin cookie devuelve 401 y la respuesta incluye `Cache-Control: no-store`; `/notas` redirige al login.
+- Build, pruebas y type-check pasan.
+- Pendiente la comprobación manual autenticada de `GET /api/notas/sesion` (HTTP 200); esperar confirmación del usuario antes de cerrar P03.

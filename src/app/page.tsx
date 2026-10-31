@@ -9,7 +9,7 @@ export default async function HomePage() {
 
   if (payload) {
     const user = await findUserById(payload.sub);
-    if (user?.activo) redirect(user.rol === "admin" ? "/usuarios" : "/dashboard");
+    if (user?.activo) redirect("/notas");
   }
 
   return <LoginForm />;

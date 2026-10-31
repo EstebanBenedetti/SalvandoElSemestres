@@ -27,7 +27,7 @@
 - Los cortes no se editan ni se eliminan. Un estudiante se desactiva en lugar de eliminarse si tiene cortes.
 - No instalar librerías de componentes (shadcn, MUI u otras). Usar `components/ui/`.
 - Prefijo de imports para lib: `@/lib`.
-- Archivo de protección de rutas: `src/proxy.ts` (pendiente de crear). Ruta de login: `/login`.
+- Archivo de protección de rutas: `src/proxy.ts`. Ruta de login: `/login`.
 
 ## Al terminar cada tarea
 1. `npm run build` sin errores.

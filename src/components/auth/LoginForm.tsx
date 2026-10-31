@@ -24,7 +24,7 @@ export function LoginForm({ contrasenaRestablecida = false }: { contrasenaRestab
       });
       const result = await response.json();
       if (!response.ok || !result.success) throw new Error(result.error ?? "No se pudo iniciar sesión.");
-      router.replace(result.data.user.rol === "admin" ? "/usuarios" : "/dashboard");
+      router.replace("/notas");
       router.refresh();
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "No se pudo iniciar sesión.");

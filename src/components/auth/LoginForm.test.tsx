@@ -32,7 +32,7 @@ describe("LoginForm", () => {
     vi.stubGlobal("fetch", vi.fn());
   });
 
-  it("inicia sesión y redirige al panel según el rol", async () => {
+  it("inicia sesión y redirige al módulo de notas", async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       json: async () => ({ success: true, data: { user: { rol: "alumno" } } }),
@@ -58,7 +58,7 @@ describe("LoginForm", () => {
         }),
       }),
     );
-    expect(replace).toHaveBeenCalledWith("/dashboard");
+    expect(replace).toHaveBeenCalledWith("/notas");
     expect(refresh).toHaveBeenCalled();
   });
 
