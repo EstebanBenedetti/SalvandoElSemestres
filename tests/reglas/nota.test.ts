@@ -40,16 +40,20 @@ describe("reglas de notas", () => {
     expect(calcularPromedio(1.5, 2.5, 5)).toBe(3.5);
   });
 
-  it("T-09 aprueba el promedio exacto de 3.30", () => {
-    expect(determinarResultado(3.3)).toBe("Aprobó");
+  it("T-09 aprueba el promedio exacto de 3.00", () => {
+    expect(determinarResultado(3)).toBe("Aprobó");
   });
 
-  it("T-10 pierde con promedio 3.29", () => {
-    expect(determinarResultado(3.29)).toBe("Perdió");
+  it("T-10 pierde justo por debajo del umbral, con 2.99", () => {
+    expect(determinarResultado(2.99)).toBe("Perdió");
   });
 
-  it("T-11 pierde con promedio 3.25", () => {
-    expect(determinarResultado(3.25)).toBe("Perdió");
+  it("T-11 pierde con promedio 2.90", () => {
+    expect(determinarResultado(2.9)).toBe("Perdió");
+  });
+
+  it("aprueba promedios entre el umbral y 3.30, como 3.25", () => {
+    expect(determinarResultado(3.25)).toBe("Aprobó");
   });
 
   it("T-12 aprueba con promedio 5.00", () => {

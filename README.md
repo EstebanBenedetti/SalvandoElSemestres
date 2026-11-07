@@ -12,7 +12,7 @@ NotaFlux permite registrar estudiantes, consultar su historial, crear cortes con
 - Historial de cortes por estudiante.
 - Validación de notas entre 0.0 y 5.0.
 - Cálculo del promedio ponderado con el examen final como peso doble.
-- Resultado de aprobación con el umbral de 3.3 y comparación `>=`.
+- Resultado de aprobación con el umbral de 3.0 y comparación `>=`.
 - Protección por sesión para las rutas del módulo.
 - API REST protegida para consultar y registrar estudiantes y cortes.
 
@@ -59,12 +59,12 @@ con redondeo final a centésimas enteras, usando la función de cálculo en `src
 Se aprueba cuando:
 
 $$
-\text{promedio} \ge 3.3
+	ext{promedio} \ge 3.0
 $$
 
 ## Por qué se calcula con céntimas
 
-El proyecto redondea cada nota a centésimas antes de ponderarlas para evitar errores de punto flotante en el límite de aprobación. Esto evita casos como 3.29/3.30/3.30 que puedan desviarse por error decimal.
+El proyecto calcula con céntimas enteras y redondea el promedio ponderado a dos decimales antes de compararlo con 3.00. Así, la frontera de aprobación no depende de errores de punto flotante.
 
 ## Estructura de carpetas
 

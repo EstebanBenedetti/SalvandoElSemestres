@@ -97,26 +97,26 @@ async function ejecutar(): Promise<void> {
       await esperarError("DATOS_INVALIDOS", () => crearEstudiante("  "));
     });
 
-    await paso(4, "registrar corte aprobado de 3.30", async () => {
+    await paso(4, "registrar corte aprobado en el umbral de 3.00", async () => {
       const corte = await registrarCorte({
         estudianteId: exigirId(idAna, "Prueba Ana"),
-        parcial1: 3.3,
-        parcial2: 3.3,
-        examenFinal: 3.3,
+        parcial1: 3,
+        parcial2: 3,
+        examenFinal: 3,
       });
-      if (corte.promedio !== 3.3 || corte.resultado !== "Aprobó") {
+      if (corte.promedio !== 3 || corte.resultado !== "Aprobó") {
         throw new Error(`Resultado inesperado: ${corte.promedio}, ${corte.resultado}.`);
       }
     });
 
-    await paso(5, "registrar corte con promedio 3.25", async () => {
+    await paso(5, "registrar corte reprobado de 2.90", async () => {
       const corte = await registrarCorte({
         estudianteId: exigirId(idAna, "Prueba Ana"),
-        parcial1: 2,
-        parcial2: 3,
-        examenFinal: 4,
+        parcial1: 2.9,
+        parcial2: 2.9,
+        examenFinal: 2.9,
       });
-      if (corte.promedio !== 3.25 || corte.resultado !== "Perdió") {
+      if (corte.promedio !== 2.9 || corte.resultado !== "Perdió") {
         throw new Error(`Resultado inesperado: ${corte.promedio}, ${corte.resultado}.`);
       }
     });
@@ -147,7 +147,7 @@ async function ejecutar(): Promise<void> {
       const detalle = await obtenerEstudiante(exigirId(idAna, "Prueba Ana"));
       if (
         detalle.cortes.length !== 2 ||
-        detalle.cortes[0]?.promedio !== 3.25 ||
+        detalle.cortes[0]?.promedio !== 2.9 ||
         detalle.estudiante.totalCortes !== 2
       ) {
         throw new Error("El historial no contiene los dos cortes en el orden esperado.");

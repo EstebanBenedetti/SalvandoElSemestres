@@ -79,7 +79,7 @@ TAREA 2. Crea .github/copilot-instructions.md reemplazando [AJUSTAR] con lo hall
 ## Convenciones
 - Identificadores, comentarios, mensajes y textos de interfaz en español.
 - El promedio y el resultado se calculan solo en lib/reglas/nota.ts, con céntimas enteras (nunca decimales de punto flotante). Ver sección 7 del plan.
-- Los pesos (25/25/50) y el umbral (3.3) se leen de lib/config/notas.ts.
+- Los pesos (25/25/50) y el umbral (3.0) se leen de lib/config/notas.ts.
 - Reglas de negocio solo en lib/reglas/: funciones puras, sin pg, sin variables de entorno y sin leer el reloj.
 - Solo lib/datos/ importa lib/db/conexion.ts. Rutas y páginas importan datos únicamente desde lib/dataService.ts.
 - Toda ruta en app/api/notas/ llama await exigirSesion() como primera instrucción.
@@ -175,7 +175,7 @@ TAREA 3. Crea scripts/verificar-bd.mjs y "db:verificar". Debe imprimir:
    d) Insertar un corte de "Verif Ana" con parcial1 = 6: debe fallar con 23514 (RN-03).
    e) Insertar un corte con examen_final = -1: debe fallar con 23514.
    f) Insertar un corte con resultado 'Pendiente': debe fallar con 23514.
-   g) Insertar un corte válido (3.30, 3.30, 3.30, promedio 3.30, 'Aprobó'); luego insertar un segundo corte válido del mismo estudiante (2.00, 3.00, 4.00, 3.25, 'Perdió'); consultar v_ultimo_corte y comprobar que devuelve el segundo (el más reciente), no el primero.
+  g) Insertar un corte válido (3.00, 3.00, 3.00, promedio 3.00, 'Aprobó'); luego insertar un segundo corte válido del mismo estudiante (2.00, 3.00, 4.00, 3.25, 'Aprobó'); consultar v_ultimo_corte y comprobar que devuelve el segundo (el más reciente), no el primero.
    Imprime "OK" o "FALLA" por caso.
 6. Total de fallas; termina con código 1 si hubo alguna.
 
@@ -203,7 +203,7 @@ AL TERMINAR:
 ````text
 Antes de escribir código lee completos: doc/PLAN_NOTAS.md (secciones 4, 7, 8.3, 8.4, 8.5, 9.2, 12 y 14.1), doc/ESTADO_ACTUAL.md y doc/ESTADO_EJECUCION.md.
 
-OBJETIVO: implementar las reglas como funciones puras y probarlas con Vitest. El núcleo es el cálculo del promedio con céntimas enteras (sección 7), que evita el error de redondeo en la frontera de 3.3.
+OBJETIVO: implementar las reglas como funciones puras y probarlas con Vitest. El núcleo es el cálculo del promedio con céntimas enteras (sección 7), que evita el error de redondeo en la frontera de 3.0.
 
 TAREA 1. Instala vitest (desarrollo). Agrega "test": "vitest run" y "test:ver": "vitest". Crea vitest.config.ts con environment 'node', include ['tests/**/*.test.ts'] y el alias '@' de tsconfig.json.
 
@@ -212,13 +212,13 @@ TAREA 2. Crea lib/config/notas.ts con el contenido exacto de la sección 8.4.
 TAREA 3. Crea lib/reglas/ con las firmas exactas de la sección 8.5:
 - errores.ts: CodigoError; MENSAJES y ESTADO_HTTP con la tabla 9.2; clase ErrorDeNegocio (name 'ErrorDeNegocio'; si no recibe mensaje usa MENSAJES[codigo]).
 - estudiante.ts: normalizarNombre (recorta espacios extremos y colapsa espacios internos a uno solo); validarNombre (tras normalizar, mínimo 2 caracteres; si no, DATOS_INVALIDOS).
-- nota.ts: esNotaValida(n) (0 ≤ n ≤ 5, usando NOTA_MINIMA y NOTA_MAXIMA); validarNotas({ parcial1, parcial2, examenFinal }) (cada una numérica y válida; si no, DATOS_INVALIDOS); calcularPromedio(p1, p2, examenFinal) EXACTAMENTE como la sección 7 (función interna aCentimas con Math.round(n*100); promedio = Math.round((aCentimas(p1)+aCentimas(p2)+2*aCentimas(examenFinal))/4)/100); determinarResultado(promedio) (aCentimas(promedio) >= 330 ? 'Aprobó' : 'Perdió', usando UMBRAL_APROBACION). calcularPromedio debe derivar los pesos de las constantes de config, no de números fijos dispersos.
+- nota.ts: esNotaValida(n) (0 ≤ n ≤ 5, usando NOTA_MINIMA y NOTA_MAXIMA); validarNotas({ parcial1, parcial2, examenFinal }) (cada una numérica y válida; si no, DATOS_INVALIDOS); calcularPromedio(p1, p2, examenFinal) EXACTAMENTE como la sección 7 (función interna aCentimas con Math.round(n*100); promedio = Math.round((aCentimas(p1)+aCentimas(p2)+2*aCentimas(examenFinal))/4)/100); determinarResultado(promedio) (aCentimas(promedio) >= 300 ? 'Aprobó' : 'Perdió', usando UMBRAL_APROBACION). calcularPromedio debe derivar los pesos de las constantes de config, no de números fijos dispersos.
 
 Ningún archivo de lib/reglas/ importa pg, next ni process.env, ni llama new Date().
 
 TAREA 4. Crea tests/reglas/ayudas.ts con esperarCodigo(fn, codigo).
 
-TAREA 5. Crea las pruebas en tests/reglas/ (nota, estudiante) cubriendo T-01 a T-24 de la sección 14.1. Cada caso con su ID en el nombre. Presta especial atención a T-01 (3.30/3.30/3.30 → 3.30 Aprobó), T-07 y T-24 (3.40/3.40/3.25 → 3.33 Aprobó) y T-09 (determinarResultado(3.30) → Aprobó, la frontera).
+TAREA 5. Crea las pruebas en tests/reglas/ (nota, estudiante) cubriendo T-01 a T-24 de la sección 14.1. Cada caso con su ID en el nombre. Presta especial atención a T-01 (3.30/3.30/3.30 → 3.30 Aprobó), T-07 y T-24 (3.40/3.40/3.25 → 3.33 Aprobó), T-09 (determinarResultado(3.00) → Aprobó), T-10 (2.99 → Perdió) y T-11 (3.25 → Aprobó).
 
 TAREA 6. Ejecuta npm test hasta que pasen las 24. Si una falla, corrige la regla, no la prueba, salvo que contradiga el plan; explícalo.
 
@@ -433,7 +433,7 @@ TAREA 4. Ejecuta npm test y npm run probar:flujo; corrige fallas en el código. 
 
 TAREA 5. Crea doc/ACEPTACION.md con la tabla A-01 a A-14 de la sección 14.3 (columnas: ID, acción, resultado esperado, resultado obtenido, evidencia, observación; las tres últimas vacías) y una nota de que A-11 y A-12 corresponden a la funcionalidad opcional (P08).
 
-TAREA 6. Actualiza README.md: descripción; funcionalidades; requisitos; cómo correr en local (npm install, .env.local con los NOMBRES de las variables, db:migrar, db:demo, dev); scripts y su propósito; estructura de carpetas; la fórmula del promedio y la regla de aprobación (3.3 con >=); una nota breve "Por qué se calcula con céntimas" (sección 7); enlace a doc/PLAN_NOTAS.md.
+TAREA 6. Actualiza README.md: descripción; funcionalidades; requisitos; cómo correr en local (npm install, .env.local con los NOMBRES de las variables, db:migrar, db:demo, dev); scripts y su propósito; estructura de carpetas; la fórmula del promedio y la regla de aprobación (3.0 con >=); una nota breve "Por qué se calcula con céntimas" (sección 7); enlace a doc/PLAN_NOTAS.md.
 
 TAREA 7. Verifica que .env.local esté en .gitignore y que ningún archivo versionado tenga valores de variables de entorno.
 
@@ -444,7 +444,7 @@ AL TERMINAR:
 - Muéstrame un resumen y recuérdame que A-01 a A-10, A-13 y A-14 se ejecutan en el despliegue de Vercel.
 ````
 
-**Verificación del estudiante:** registrar un corte y ver cómo el promedio y el resultado cambian en vivo al escribir las notas; probar 3.30/3.30/3.30 (Aprobó) y 2.00/3.00/4.00 (Perdió, 3,25). Hacer push y ejecutar A-01 a A-10, A-13 y A-14 en Vercel.
+**Verificación del estudiante:** registrar un corte y ver cómo el promedio y el resultado cambian en vivo al escribir las notas; probar 3.00/3.00/3.00 (Aprobó), 2.90/2.90/2.90 (Perdió) y 2.00/3.00/4.00 (Aprobó, 3,25). Hacer push y ejecutar A-01 a A-10, A-13 y A-14 en Vercel.
 
 **Commit sugerido:** `feat(interfaz): registro de corte con promedio en vivo y aceptación`
 

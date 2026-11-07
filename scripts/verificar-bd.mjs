@@ -188,11 +188,11 @@ async function main() {
           registrarFalla("g) no se pudo comprobar el corte más reciente sin estudiante de prueba");
         } else {
           const primero = await client.query(
-            "INSERT INTO cortes (estudiante_id, parcial1, parcial2, examen_final, promedio, resultado) VALUES ($1, 3.30, 3.30, 3.30, 3.30, 'Aprobó') RETURNING id",
+            "INSERT INTO cortes (estudiante_id, parcial1, parcial2, examen_final, promedio, resultado) VALUES ($1, 3.00, 3.00, 3.00, 3.00, 'Aprobó') RETURNING id",
             [estudianteId],
           );
           const segundo = await client.query(
-            "INSERT INTO cortes (estudiante_id, parcial1, parcial2, examen_final, promedio, resultado) VALUES ($1, 2.00, 3.00, 4.00, 3.25, 'Perdió') RETURNING id",
+            "INSERT INTO cortes (estudiante_id, parcial1, parcial2, examen_final, promedio, resultado) VALUES ($1, 2.90, 2.90, 2.90, 2.90, 'Perdió') RETURNING id",
             [estudianteId],
           );
           const ultimo = await client.query(
@@ -203,7 +203,7 @@ async function main() {
             ultimo.rowCount === 1 &&
             ultimo.rows[0].corte_id === segundo.rows[0].id &&
             ultimo.rows[0].corte_id !== primero.rows[0].id &&
-            Number(ultimo.rows[0].promedio) === 3.25 &&
+            Number(ultimo.rows[0].promedio) === 2.9 &&
             ultimo.rows[0].resultado === "Perdió";
           if (coincide) {
             informar("OK: g) v_ultimo_corte devuelve el segundo corte");

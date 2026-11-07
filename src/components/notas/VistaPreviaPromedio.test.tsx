@@ -16,6 +16,24 @@ describe("VistaPreviaPromedio", () => {
     expect(screen.getByText("Aprobó")).toBeInTheDocument();
   });
 
+  it("aprueba en el promedio mínimo exacto de 3.00", () => {
+    render(
+      <VistaPreviaPromedio parcial1="2.00" parcial2="2.00" examenFinal="4.00" />,
+    );
+
+    expect(screen.getByText("Promedio: 3,00")).toBeInTheDocument();
+    expect(screen.getByText("Aprobó")).toBeInTheDocument();
+  });
+
+  it("reprueba con promedio 2.90", () => {
+    render(
+      <VistaPreviaPromedio parcial1="2.90" parcial2="2.90" examenFinal="2.90" />,
+    );
+
+    expect(screen.getByText("Promedio: 2,90")).toBeInTheDocument();
+    expect(screen.getByText("Perdió")).toBeInTheDocument();
+  });
+
   it("pide completar las tres notas si faltan datos o la nota supera el rango", () => {
     render(
       <VistaPreviaPromedio

@@ -3,6 +3,7 @@ import { EstadoVacio } from "@/components/ui/EstadoVacio";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { formatearNota } from "@/lib/formato";
 import type { ExtremosGrupo } from "@/lib/datos/tipos";
+import { UMBRAL_APROBACION } from "@/lib/config/notas";
 
 export function PanelGrupo({ datos }: { datos: ExtremosGrupo }) {
   if (datos.totalEnGrupo === 0 || datos.masAltos.length === 0 || datos.masBajos.length === 0) {
@@ -27,7 +28,9 @@ export function PanelGrupo({ datos }: { datos: ExtremosGrupo }) {
             <span className="font-medium text-texto">{elemento.nombre}</span>
             <div className="flex items-center gap-2 tabular-nums text-texto">
               {formatearNota(elemento.promedio)}
-              <InsigniaResultado resultado={elemento.promedio >= 3.3 ? "Aprobó" : "Perdió"} />
+              <InsigniaResultado
+                resultado={elemento.promedio >= UMBRAL_APROBACION ? "Aprobó" : "Perdió"}
+              />
             </div>
           </li>
         ))}

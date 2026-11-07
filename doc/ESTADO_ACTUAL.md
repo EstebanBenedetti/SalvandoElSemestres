@@ -267,3 +267,10 @@ Vitest (`vitest run`), con configuración en `vitest.config.ts`. Las 24 pruebas 
 - El historial del estudiante incorpora una visualización accesible de la tendencia cronológica entre cortes.
 - `doc/OPERACION_RECUPERACION.md` contiene instrucciones de backup y restauración en staging. No se ha ejecutado una restauración real porque no se dispone de una base staging identificada.
 - Validación local: 56 pruebas Vitest, 4 escenarios Playwright, type-check, lint y build correctos.
+
+## 20. Regla de aprobación actualizada (2026-11-07)
+
+- Umbral vigente: promedio redondeado a dos decimales mayor o igual a 3.00 aprueba; por debajo reprueba. El rango de notas por evaluación continúa en 0.00–5.00.
+- La regla central está en `src/lib/config/notas.ts`; `PanelGrupo`, la vista previa, las APIs y los reportes usan el mismo resultado calculado.
+- `supabase/migrations/0004_umbral_aprobacion_3_0.sql` fue aplicada a la base configurada; reclasificó resultados guardados según el umbral nuevo sin cambiar las notas ni los promedios.
+- Pruebas añadidas para 3.00, 2.99, 2.90 y 3.25.

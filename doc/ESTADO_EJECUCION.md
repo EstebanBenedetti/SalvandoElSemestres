@@ -159,3 +159,12 @@
 - Actualizaciones compatibles: Next.js y `eslint-config-next` a `16.4.5`, Vercel CLI a `65.12.1`, Zod a `4.6.7` y parches transitivos dentro de rangos existentes.
 - Validación tras actualizar: 17 archivos/58 pruebas Vitest, 5 E2E, type-check, lint y build correctos.
 - El audit completo conserva 48 avisos en dependencias de desarrollo (26 moderados, 21 altos y 1 crítico), originados principalmente en la cadena interna del CLI de Vercel. La versión estable actual es `65.12.1`; `npm audit fix --force` propone bajar a `65.2.0`, por lo que no se aplicó ese downgrade ni overrides incompatibles.
+
+## Cambio del umbral de aprobación · 2026-11-07
+
+- Regla vigente: promedio desde 3.00 inclusive aprueba; menor a 3.00 reprueba. Las notas individuales mantienen el rango 0.00–5.00.
+- `npm.cmd test -- nota.test.ts PanelGrupo.test.tsx VistaPreviaPromedio.test.tsx`: 26 pruebas pasaron, con cobertura de 3.00, 2.99, 2.90 y 3.25.
+- Validación total: `npm.cmd test` (17 archivos, 61 pruebas), `npm.cmd run type-check`, `npm.cmd run lint` y `npm.cmd run build` correctos.
+- Los estados guardados descritos en bitácoras anteriores corresponden a la regla de 3.3 vigente en ese momento; la migración `0004` los reclasificará al aplicarse.
+- `npm.cmd run db:migrar`: aplicó `0004_umbral_aprobacion_3_0.sql` y reclasificó los resultados históricos según su promedio guardado; no cambió notas ni promedios.
+- `npm.cmd run db:verificar`: autoría y restricciones disponibles, pruebas transaccionales con `ROLLBACK` y total de fallas 0.

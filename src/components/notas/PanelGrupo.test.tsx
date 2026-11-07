@@ -7,8 +7,8 @@ describe("PanelGrupo", () => {
     render(
       <PanelGrupo
         datos={{
-          masAltos: [{ nombre: "Ana", promedio: 4.5 }],
-          masBajos: [{ nombre: "Sofía", promedio: 2.1 }],
+          masAltos: [{ nombre: "Ana", promedio: 3 }],
+          masBajos: [{ nombre: "Sofía", promedio: 2.9 }],
           totalEnGrupo: 3,
         }}
       />,
@@ -18,6 +18,8 @@ describe("PanelGrupo", () => {
     expect(screen.getByText("Ana")).toBeInTheDocument();
     expect(screen.getByText("Mínimo del grupo")).toBeInTheDocument();
     expect(screen.getByText("Sofía")).toBeInTheDocument();
+    expect(screen.getByText("Aprobó")).toBeInTheDocument();
+    expect(screen.getByText("Perdió")).toBeInTheDocument();
     expect(screen.getByText("Total en grupo")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
   });

@@ -107,7 +107,7 @@ Se mantiene la lista del plan funcional: edición o borrado de un corte ya regis
 | Interfaz por consola | Aplicación web en Next.js | Es el proyecto del semestre y ya está desplegado en Vercel. Las reglas no cambian; cambia la forma de capturar los datos |
 | Sin usuarios ni login | Se usa el login existente como puerta única, sin roles | La aplicación está en una URL pública (sección 1.3) |
 | Estudiante identificado por el nombre | Identificador interno UUID; el nombre es único (case-insensitive) | El nombre sigue siendo la referencia del usuario, pero las relaciones internas usan el id; evita problemas si dos nombres difieren solo en mayúsculas o espacios |
-| Notas como decimal 0.0 a 5.0 | Se guardan como `NUMERIC(3,2)`; los cálculos se hacen con céntimas enteras para el promedio (sección 7) | Evita que el redondeo binario altere la comparación con 3.3 en la frontera de aprobación |
+| Notas como decimal 0.0 a 5.0 | Se guardan como `NUMERIC(3,2)`; los cálculos se hacen con céntimas enteras para el promedio (sección 7) | Evita que el redondeo binario altere la comparación con 3.00 en la frontera de aprobación |
 | "fecha del corte" | `TIMESTAMPTZ` del momento del registro | Varios cortes el mismo día deben poder ordenarse por momento exacto; el plan ordena el historial por fecha |
 
 ### 2.5 Decisiones de alcance de esta versión técnica
@@ -145,7 +145,7 @@ Se mantiene la lista del plan funcional: edición o borrado de un corte ya regis
 | RN-02 | El nombre del estudiante es único sin distinguir mayúsculas ni espacios extremos | Sección 4 | BD índice único sobre el nombre normalizado |
 | RN-03 | Cada nota (parcial 1, parcial 2, examen final) está entre 0.0 y 5.0 inclusive | Sección 6, regla de rango | `lib/reglas/nota.ts`; Zod; BD CHECK |
 | RN-04 | El promedio ponderado es: parcial 1 × 25 % + parcial 2 × 25 % + examen final × 50 % | Sección 6 | `lib/reglas/nota.ts` `calcularPromedio` |
-| RN-05 | Se aprueba con promedio mayor o igual a 3.3 (se usa `>=`); por debajo, se pierde | Sección 6 | `lib/reglas/nota.ts` `determinarResultado` |
+| RN-05 | Se aprueba con promedio mayor o igual a 3.0 (se usa `>=`); por debajo, se pierde | Sección 6 | `lib/reglas/nota.ts` `determinarResultado` |
 | RN-06 | No se puede registrar un corte para un estudiante que no existe o está inactivo | Sección 6 | Servicio; BD foreign key |
 | RN-07 | Un corte nuevo se agrega al historial como una entrada más; nunca sobrescribe los anteriores | Sección 6 | Solo INSERT; sin UPDATE ni DELETE de cortes |
 | RN-08 | El máximo y el mínimo del grupo se calculan solo sobre el corte más reciente de cada estudiante activo con cortes, no sobre todos los cortes mezclados | Sección 6, RF del plan | `lib/datos/grupo.ts` con el corte de `created_at` más alto por estudiante |
@@ -157,7 +157,7 @@ Se mantiene la lista del plan funcional: edición o borrado de un corte ya regis
 
 | Validación (rechaza datos mal formados) | Regla de negocio (decisión del dominio) |
 |---|---|
-| Cada nota debe estar entre 0.0 y 5.0 | El estudiante aprueba si el promedio ponderado es ≥ 3.3 |
+| Cada nota debe estar entre 0.0 y 5.0 | El estudiante aprueba si el promedio ponderado es ≥ 3.0 |
 | El nombre del estudiante no puede estar vacío | El examen final pesa el doble que cada parcial |
 | No se registra un corte para un estudiante inexistente | El máximo y el mínimo salen solo del corte más reciente de cada estudiante |
 
@@ -298,7 +298,7 @@ REVOKE ALL ON v_ultimo_corte FROM anon, authenticated;
 
 ## 7. Cálculo del promedio
 
-El punto delicado es la frontera de aprobación: un promedio de exactamente 3.3 aprueba (RN-05, con `>=`). Si el promedio se calcula con decimales de punto flotante, `0.25 + 0.25 + 0.5` sobre ciertas notas puede dar `3.2999999999999998` y clasificar mal un corte en el límite.
+El punto delicado es la frontera de aprobación: un promedio de exactamente 3.00 aprueba (RN-05, con `>=`). Si el promedio se calcula con decimales de punto flotante, un resultado en el límite puede quedar representado por debajo de 3.00 y clasificarse mal.
 
 Por eso el cálculo se hace con **céntimas enteras**:
 
@@ -315,7 +315,7 @@ export function calcularPromedio(p1: number, p2: number, examenFinal: number): n
 }
 
 export function determinarResultado(promedio: number): 'Aprobó' | 'Perdió' {
-  return aCentimas(promedio) >= 330 ? 'Aprobó' : 'Perdió';   // RN-05
+  return aCentimas(promedio) >= 300 ? 'Aprobó' : 'Perdió';   // RN-05
 }
 ```
 
@@ -324,8 +324,8 @@ Ejemplos verificables:
 | p1 | p2 | final | Cálculo en céntimas | Promedio | Resultado |
 |---|---|---|---|---|---|
 | 3.30 | 3.30 | 3.30 | (330+330+660)/4 = 330 | 3.30 | Aprobó |
-| 2.00 | 3.00 | 4.00 | (200+300+800)/4 = 325 | 3.25 | Perdió |
-| 3.00 | 3.00 | 3.50 | (300+300+700)/4 = 325 | 3.25 | Perdió |
+| 2.00 | 3.00 | 4.00 | (200+300+800)/4 = 325 | 3.25 | Aprobó |
+| 3.00 | 3.00 | 3.50 | (300+300+700)/4 = 325 | 3.25 | Aprobó |
 | 5.00 | 5.00 | 5.00 | (500+500+1000)/4 = 500 | 5.00 | Aprobó |
 | 0.00 | 0.00 | 0.00 | 0 | 0.00 | Perdió |
 | 4.00 | 4.00 | 3.00 | (400+400+600)/4 = 350 | 3.50 | Aprobó |
@@ -426,7 +426,7 @@ components/notas/PanelGrupo.tsx               (opcional, F5)
 | Identificadores, comentarios y mensajes en español | Coherencia con el dominio y con el plan funcional |
 | El promedio y el resultado solo se calculan en `lib/reglas/nota.ts` | Una sola fuente de verdad, probada con Vitest |
 | El cálculo usa céntimas enteras, no decimales de punto flotante | Sección 7 |
-| Los pesos (25/25/50) y el umbral (3.3) se leen de `lib/config/notas.ts` | Un solo lugar para ajustarlos |
+| Los pesos (25/25/50) y el umbral (3.0) se leen de `lib/config/notas.ts` | Un solo lugar para ajustarlos |
 | Solo `lib/datos/` importa `lib/db/conexion.ts` | Las rutas no escriben SQL |
 | Las rutas solo importan datos desde `lib/dataService.ts` | Fachada única |
 | Toda ruta `/api/notas/*` llama `exigirSesion()` como primera instrucción | Sección 1.3 |
@@ -443,7 +443,7 @@ export const PESO_PARCIAL2 = 25;        // %
 export const PESO_EXAMEN_FINAL = 50;    // %
 export const NOTA_MINIMA = 0;           // nota más baja válida
 export const NOTA_MAXIMA = 5;           // nota más alta válida
-export const UMBRAL_APROBACION = 3.3;   // se aprueba con promedio >= 3.3 (RN-05)
+export const UMBRAL_APROBACION = 3.0;   // se aprueba con promedio >= 3.0 (RN-05)
 export const LIMITE_LISTADO = 500;      // filas máximas por consulta
 ```
 
@@ -697,9 +697,9 @@ No hay cálculo de "hoy" que dependa de la zona horaria para una regla de negoci
 | T-06 | `calcularPromedio` | 4.00, 4.00, 3.00 | 3.50 |
 | T-07 | `calcularPromedio` | 3.40, 3.40, 3.25 | 3.33 |
 | T-08 | `calcularPromedio` | 1.50, 2.50, 5.00 | 3.50 |
-| T-09 | `determinarResultado` | 3.30 | `Aprobó` (frontera, `>=`) |
-| T-10 | `determinarResultado` | 3.29 | `Perdió` |
-| T-11 | `determinarResultado` | 3.25 | `Perdió` |
+| T-09 | `determinarResultado` | 3.00 | `Aprobó` (frontera, `>=`) |
+| T-10 | `determinarResultado` | 2.99 | `Perdió` |
+| T-11 | `determinarResultado` | 3.25 | `Aprobó` |
 | T-12 | `determinarResultado` | 5.00 | `Aprobó` |
 | T-13 | `determinarResultado` | 0.00 | `Perdió` |
 | T-14 | `esNotaValida` | -0.1 | `false` |
@@ -726,10 +726,10 @@ Comando: `npm test`. Las 24 pruebas deben pasar antes de continuar con la fase 3
 | 2 | Crear "prueba ana" (minúscula) | `NOMBRE_DUPLICADO` |
 | 3 | Crear estudiante con nombre "  " | `DATOS_INVALIDOS` |
 | 4 | Registrar corte de "Prueba Ana": 3.30, 3.30, 3.30 | Promedio 3.30, Aprobó |
-| 5 | Registrar corte: 2.00, 3.00, 4.00 | Promedio 3.25, Perdió |
+| 5 | Registrar corte: 2.90, 2.90, 2.90 | Promedio 2.90, Perdió |
 | 6 | Registrar corte con nota 6.0 | `DATOS_INVALIDOS` |
 | 7 | Registrar corte para un id inexistente | `ESTUDIANTE_NO_ENCONTRADO` |
-| 8 | Consultar el historial de "Prueba Ana" | Dos cortes, el más reciente primero (3.25) |
+| 8 | Consultar el historial de "Prueba Ana" | Dos cortes, el más reciente primero (2.90) |
 | 9 | Crear "Prueba Beto"; corte 5.00, 5.00, 5.00 | Promedio 5.00, Aprobó |
 | 10 | Crear "Prueba Caro"; corte 1.00, 1.00, 1.00 | Promedio 1.00, Perdió |
 | 11 | Extremos del grupo | Más alto: Prueba Beto (5.00); más bajo: Prueba Caro (1.00) |
@@ -802,7 +802,7 @@ Prueba adicional de F5: T-25 a T-27 sobre `obtenerExtremosGrupo` usando datos se
 |---|---|
 | Corte | Registro de las tres notas de un momento, con su promedio y resultado; forma el historial del estudiante |
 | Promedio ponderado | Parcial 1 × 25 % + parcial 2 × 25 % + examen final × 50 % |
-| Resultado | "Aprobó" si el promedio es ≥ 3.3; "Perdió" si es menor |
+| Resultado | "Aprobó" si el promedio es ≥ 3.0; "Perdió" si es menor |
 | Historial | Todos los cortes de un estudiante, del más reciente al más antiguo |
 | Corte más reciente | El corte con el `created_at` más alto de un estudiante |
 | Grupo | Los estudiantes activos con al menos un corte, para el máximo y el mínimo |
