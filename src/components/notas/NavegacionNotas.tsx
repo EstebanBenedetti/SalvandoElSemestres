@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Boton } from "@/components/ui/Boton";
 import { Aviso } from "@/components/ui/Aviso";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export function NavegacionNotas({ email }: { email: string }) {
   const pathname = usePathname();
@@ -95,6 +96,7 @@ export function NavegacionNotas({ email }: { email: string }) {
         <nav aria-label="Navegación principal" className="hidden items-center gap-2 sm:flex">
           {enlaces}
         </nav>
+        <ThemeToggle className="border-white/35 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white" />
         <button
           type="button"
           aria-expanded={menuAbierto}

@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { NavegacionNotas } from "./NavegacionNotas";
 
 vi.mock("next/navigation", () => ({
@@ -21,7 +22,11 @@ vi.mock("next/link", () => ({
 
 describe("NavegacionNotas", () => {
   it("mantiene activa la sección de estudiantes en páginas de detalle", () => {
-    render(<NavegacionNotas email="docente@correo.com" />);
+    render(
+      <ThemeProvider>
+        <NavegacionNotas email="docente@correo.com" />
+      </ThemeProvider>,
+    );
 
     expect(screen.getByRole("link", { name: "Estudiantes" })).toHaveAttribute(
       "aria-current",

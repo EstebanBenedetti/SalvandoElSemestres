@@ -19,11 +19,29 @@
 :root {
   --background: #f3f7fc;
   --foreground: #1f2a37;
+  --background-glow: rgba(45, 91, 168, 0.1);
+  --background-top: #f8fbff;
 }
 
-:root[data-theme="light"] {
-  --background: #f3f7fc;
-  --foreground: #1f2a37;
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-primario: #91b7ff;
+  --color-primario-suave: #263d5d;
+  --color-aprobo: #82d9a0;
+  --color-aprobo-suave: #1c3b2b;
+  --color-perdio: #ff9898;
+  --color-perdio-suave: #48292d;
+  --color-inactivo: #b0bdca;
+  --color-inactivo-suave: #303b48;
+  --color-fondo: #151f2b;
+  --color-superficie: #202c3a;
+  --color-texto: #edf2f7;
+  --color-texto-suave: #b0bdca;
+  --color-borde: #39495b;
+  --background: #111a24;
+  --foreground: #edf2f7;
+  --background-glow: rgba(85, 133, 201, 0.16);
+  --background-top: #1a2837;
 }
 
 * { box-sizing: border-box; }
@@ -34,8 +52,8 @@ html {
 
 body {
   background:
-    radial-gradient(circle at top, rgba(45, 91, 168, 0.1), transparent 28%),
-    linear-gradient(180deg, #f8fbff 0%, var(--background) 100%);
+    radial-gradient(circle at top, var(--background-glow), transparent 28%),
+    linear-gradient(180deg, var(--background-top) 0%, var(--background) 100%);
   color: var(--foreground);
   font-family: "Segoe UI", "Inter", Arial, sans-serif;
   margin: 0;

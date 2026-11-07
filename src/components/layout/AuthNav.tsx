@@ -41,9 +41,9 @@ export function AuthNav() {
 
   return (
     <>
-      {user.rol === "admin" ? <Link href="/usuarios">Usuarios</Link> : null}
-      <Link href="/cuenta/contrasena">Cambiar contraseña</Link>
-      <button type="button" onClick={logout} className="hover:text-white">Cerrar sesión</button>
+      {user.rol === "admin" ? <Link href="/usuarios" className="hover:text-primario">Usuarios</Link> : null}
+      <Link href="/cuenta/contrasena" className="hover:text-primario">Cambiar contraseña</Link>
+      <button type="button" onClick={logout} className="hover:text-primario">Cerrar sesión</button>
     </>
   );
 }
