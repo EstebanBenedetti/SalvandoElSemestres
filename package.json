@@ -16,6 +16,7 @@
     "db:demo": "node --conditions=react-server --env-file=.env.local --import tsx scripts/cargar-demo.ts",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:e2e:flujo": "playwright test --config=playwright.flujo.config.ts",
     "test:ver": "vitest",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"

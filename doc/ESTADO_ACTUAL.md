@@ -274,3 +274,9 @@ Vitest (`vitest run`), con configuración en `vitest.config.ts`. Las 24 pruebas 
 - La regla central está en `src/lib/config/notas.ts`; `PanelGrupo`, la vista previa, las APIs y los reportes usan el mismo resultado calculado.
 - `supabase/migrations/0004_umbral_aprobacion_3_0.sql` fue aplicada a la base configurada; reclasificó resultados guardados según el umbral nuevo sin cambiar las notas ni los promedios.
 - Pruebas añadidas para 3.00, 2.99, 2.90 y 3.25.
+
+## 21. E2E autenticado
+
+- `npm run test:e2e:flujo` corre en `playwright.flujo.config.ts` y exige `E2E_DATABASE_URL` cuyo nombre contiene `e2e` o `test`.
+- El test inicia sesión mediante el endpoint real con un stub local de Supabase; altas, cortes, historial y CSV usan PostgreSQL real aislado.
+- `.github/workflows/ci.yml` crea PostgreSQL 16 desechable, aplica migraciones y ejecuta el flujo en un job aparte. No usa credenciales ni datos de producción.

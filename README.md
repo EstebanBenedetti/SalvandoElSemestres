@@ -39,6 +39,8 @@ Asegúrate de configurar `.env.local` con los nombres reales de las variables de
 - `npm run dev`: inicia la aplicación en modo desarrollo.
 - `npm run build`: compila la aplicación de producción.
 - `npm run test`: ejecuta la suite de pruebas.
+- `npm run test:e2e`: ejecuta E2E smoke de acceso, protección, teclado, móvil y tema.
+- `npm run test:e2e:flujo`: ejecuta el flujo autenticado contra una base PostgreSQL aislada.
 - `npm run db:migrar`: aplica migraciones de la base de datos.
 - `npm run db:demo`: carga datos de ejemplo para ver el módulo.
 - `npm run db:verificar`: valida la integridad de la base de datos.
@@ -59,7 +61,7 @@ con redondeo final a centésimas enteras, usando la función de cálculo en `src
 Se aprueba cuando:
 
 $$
-	ext{promedio} \ge 3.0
+\mathrm{promedio} \ge 3.0
 $$
 
 ## Por qué se calcula con céntimas
@@ -80,3 +82,18 @@ El proyecto calcula con céntimas enteras y redondea el promedio ponderado a dos
 - [doc/PLAN_NOTAS.md](doc/PLAN_NOTAS.md)
 - [doc/PROMPTS_NOTAS.md](doc/PROMPTS_NOTAS.md)
 - [doc/ACEPTACION.md](doc/ACEPTACION.md)
+
+## E2E autenticado
+
+El flujo completo usa un usuario Supabase simulado solo para pruebas y una base PostgreSQL separada. Nunca apuntes `E2E_DATABASE_URL` a `.env.local`, staging compartido o producción; el nombre de la base debe incluir `e2e` o `test`.
+
+En PowerShell, con PostgreSQL local vacío y aislado:
+
+```powershell
+$env:E2E_DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:5432/notaflux_e2e"
+$env:POSTGRES_URL_NON_POOLING = $env:E2E_DATABASE_URL
+node scripts/migrar.mjs
+npm.cmd run test:e2e:flujo
+```
+
+CI crea un PostgreSQL efímero, aplica las migraciones y ejecuta el mismo flujo. La prueba elimina el estudiante y sus cortes al finalizar.

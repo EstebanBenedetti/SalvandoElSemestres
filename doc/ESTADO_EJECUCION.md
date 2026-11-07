@@ -165,6 +165,13 @@
 - Regla vigente: promedio desde 3.00 inclusive aprueba; menor a 3.00 reprueba. Las notas individuales mantienen el rango 0.00–5.00.
 - `npm.cmd test -- nota.test.ts PanelGrupo.test.tsx VistaPreviaPromedio.test.tsx`: 26 pruebas pasaron, con cobertura de 3.00, 2.99, 2.90 y 3.25.
 - Validación total: `npm.cmd test` (17 archivos, 61 pruebas), `npm.cmd run type-check`, `npm.cmd run lint` y `npm.cmd run build` correctos.
-- Los estados guardados descritos en bitácoras anteriores corresponden a la regla de 3.3 vigente en ese momento; la migración `0004` los reclasificará al aplicarse.
+- Los estados guardados descritos en bitácoras anteriores correspondían a la regla de 3.3 vigente en ese momento; `0004` ya los reclasificó según el promedio guardado.
 - `npm.cmd run db:migrar`: aplicó `0004_umbral_aprobacion_3_0.sql` y reclasificó los resultados históricos según su promedio guardado; no cambió notas ni promedios.
 - `npm.cmd run db:verificar`: autoría y restricciones disponibles, pruebas transaccionales con `ROLLBACK` y total de fallas 0.
+
+## E2E autenticado · 2026-11-07
+
+- Añadido `npm.cmd run test:e2e:flujo`: inicia sesión por la API real con Supabase simulado, crea un estudiante, registra el corte, consulta historial y descarga el CSV usando PostgreSQL de prueba.
+- `playwright.flujo.config.ts` rechaza bases cuyo nombre no incluya `e2e` o `test`; el fixture limpia el estudiante y sus cortes al finalizar.
+- CI provisiona PostgreSQL 16 efímero y aplica las migraciones en un job independiente. No se ejecutó localmente porque Docker no está disponible; no se usó la conexión de `.env.local` como base de prueba.
+- Los E2E smoke siguen pasando (5 escenarios); el flujo autenticado se ejecuta en CI o con una base local aislada.

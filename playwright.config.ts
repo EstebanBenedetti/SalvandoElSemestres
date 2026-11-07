@@ -4,6 +4,7 @@ const baseURL = "http://127.0.0.1:3100";
 
 export default defineConfig({
   testDir: "./e2e",
+  testIgnore: ["**/flujo/**"],
   fullyParallel: true,
   reporter: process.env.CI ? "github" : "list",
   use: {
