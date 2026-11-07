@@ -15,6 +15,7 @@
     "probar:flujo": "node --conditions=react-server --env-file=.env.local --import tsx scripts/probar-flujo.ts",
     "db:demo": "node --conditions=react-server --env-file=.env.local --import tsx scripts/cargar-demo.ts",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "test:ver": "vitest",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
@@ -33,6 +34,7 @@
     "zod": "^4.6.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",

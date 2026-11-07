@@ -56,3 +56,11 @@ select {
 a {
   text-decoration: none;
 }
+
+@media print {
+  @page { margin: 14mm; }
+  html, body { background: #fff !important; color: #111 !important; }
+  header, .no-imprimir { display: none !important; }
+  body { min-height: auto; }
+  * { box-shadow: none !important; text-shadow: none !important; }
+}

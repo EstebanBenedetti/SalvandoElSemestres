@@ -254,3 +254,14 @@ Vitest (`vitest run`), con configuración en `vitest.config.ts`. Las 24 pruebas 
 - Verificación responsive a 390 px: menú móvil visible y operable, tarjetas de estudiantes visibles y tabla de escritorio oculta.
 - El estudiante temporal `Prueba Interfaz P06` se eliminó por su ID exacto tras verificar que no tenía cortes.
 - `npm.cmd run build`: correcto. `npm.cmd test`: 44 pruebas pasaron. Type-check y lint de archivos P06 correctos.
+
+## 19. Profesionalización posterior (2026-11-07)
+
+- CI (`.github/workflows/ci.yml`) ejecuta Playwright sobre Chromium después de lint, type-check, Vitest y build. `playwright.config.ts` inicia el build de producción en el puerto 3100.
+- Las pruebas E2E cubren el error de acceso, redirección de rutas protegidas, acceso móvil sin overflow y navegación por teclado.
+- `supabase/migrations/0003_cortes_autoria.sql` añade el autor de cada corte nuevo. `POST /api/notas/estudiantes/[id]/cortes` toma el correo exclusivamente de la sesión; el historial y los reportes muestran el autor. Los cortes existentes conservan autor nulo.
+- La migración 0003 fue aplicada a la base configurada; `npm.cmd run db:verificar` confirmó la columna de autoría y terminó con cero fallas. El ensayo de restauración continúa pendiente de una base staging aislada.
+- `/notas/reportes` ofrece el detalle de estudiantes/cortes, descarga CSV y una vista de impresión apta para guardar como PDF. `GET /api/notas/exportar` exige sesión y neutraliza celdas que podrían ejecutarse como fórmulas.
+- El historial del estudiante incorpora una visualización accesible de la tendencia cronológica entre cortes.
+- `doc/OPERACION_RECUPERACION.md` contiene instrucciones de backup y restauración en staging. No se ha ejecutado una restauración real porque no se dispone de una base staging identificada.
+- Validación local: 56 pruebas Vitest, 4 escenarios Playwright, type-check, lint y build correctos.

@@ -14,6 +14,7 @@ import {
 interface FilaCorte extends QueryResultRow {
   id: number;
   estudiante_id: string;
+  registrado_por: string | null;
   parcial1: number;
   parcial2: number;
   examen_final: number;
@@ -26,6 +27,7 @@ function mapearCorte(fila: FilaCorte): Corte {
   return {
     id: fila.id,
     estudianteId: fila.estudiante_id,
+    registradoPor: fila.registrado_por,
     parcial1: fila.parcial1,
     parcial2: fila.parcial2,
     examenFinal: fila.examen_final,
@@ -35,7 +37,10 @@ function mapearCorte(fila: FilaCorte): Corte {
   };
 }
 
-export async function registrarCorte(datos: DatosCorte): Promise<Corte> {
+export async function registrarCorte(
+  datos: DatosCorte,
+  registradoPor: string | null = null,
+): Promise<Corte> {
   validarNotas(datos);
 
   try {
@@ -44,9 +49,9 @@ export async function registrarCorte(datos: DatosCorte): Promise<Corte> {
       const promedio = calcularPromedio(datos.parcial1, datos.parcial2, datos.examenFinal);
       const resultado = determinarResultado(promedio);
       const insercion = await tx.query<FilaCorte>(
-        `INSERT INTO cortes (estudiante_id, parcial1, parcial2, examen_final, promedio, resultado)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING id, estudiante_id, parcial1, parcial2, examen_final, promedio, resultado, created_at`,
+        `INSERT INTO cortes (estudiante_id, parcial1, parcial2, examen_final, promedio, resultado, registrado_por)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING id, estudiante_id, registrado_por, parcial1, parcial2, examen_final, promedio, resultado, created_at`,
         [
           datos.estudianteId,
           datos.parcial1,
@@ -54,6 +59,7 @@ export async function registrarCorte(datos: DatosCorte): Promise<Corte> {
           datos.examenFinal,
           promedio,
           resultado,
+          registradoPor,
         ],
       );
       const fila = insercion.rows[0];
@@ -68,7 +74,7 @@ export async function registrarCorte(datos: DatosCorte): Promise<Corte> {
 export async function listarCortes(estudianteId: string): Promise<Corte[]> {
   try {
     const filas = await consultar<FilaCorte>(
-      `SELECT id, estudiante_id, parcial1, parcial2, examen_final, promedio, resultado, created_at
+      `SELECT id, estudiante_id, registrado_por, parcial1, parcial2, examen_final, promedio, resultado, created_at
        FROM cortes
        WHERE estudiante_id = $1
        ORDER BY created_at DESC, id DESC`,

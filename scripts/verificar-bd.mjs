@@ -43,6 +43,14 @@ async function main() {
       if (!existe) registrarFalla(`no existe ${nombre}`);
     }
 
+    const columnaAutor = await pool.query(`
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'cortes'
+        AND column_name = 'registrado_por'
+    `);
+    informar(`Autoría de cortes: ${columnaAutor.rowCount ? "disponible" : "falta migración 0003"}`);
+    if (!columnaAutor.rowCount) registrarFalla("falta la columna cortes.registrado_por (migración 0003)");
+
     for (const tabla of ["estudiantes", "cortes"]) {
       if (!existen[tabla]) {
         informar(`Filas ${tabla}: no disponible`);

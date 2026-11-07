@@ -4,7 +4,7 @@ import { Tarjeta } from "@/components/ui/Tarjeta";
 import { formatearFecha, formatearNota } from "@/lib/formato";
 import type { Corte } from "@/lib/datos/tipos";
 
-const columnas = ["Fecha", "Parcial 1", "Parcial 2", "Examen final", "Promedio", "Resultado"];
+const columnas = ["Fecha", "Parcial 1", "Parcial 2", "Examen final", "Promedio", "Resultado", "Registrado por"];
 
 export function TablaHistorial({
   cortes,
@@ -50,6 +50,7 @@ export function TablaHistorial({
               <DatoCorte etiqueta="Parcial 2" valor={formatearNota(corte.parcial2)} />
               <DatoCorte etiqueta="Examen final" valor={formatearNota(corte.examenFinal)} />
               <DatoCorte etiqueta="Promedio" valor={formatearNota(corte.promedio)} destacado />
+              <DatoCorte etiqueta="Registrado por" valor={corte.registradoPor ?? "No disponible"} />
             </dl>
           </article>
         ))}
@@ -77,6 +78,9 @@ export function TablaHistorial({
                 </td>
                 <td className="px-4 py-3">
                   <InsigniaResultado resultado={corte.resultado} />
+                </td>
+                <td className="max-w-56 truncate px-4 py-3 text-texto">
+                  {corte.registradoPor ?? "No disponible"}
                 </td>
               </tr>
             ))}

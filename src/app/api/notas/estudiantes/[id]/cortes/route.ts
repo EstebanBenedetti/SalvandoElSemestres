@@ -31,12 +31,12 @@ export const GET = conManejoDeErrores(
 
 export const POST = conManejoDeErrores(
   async (request: Request, contexto: ParametrosRuta) => {
-    await exigirSesion();
+    const sesion = await exigirSesion();
 
     const { id } = await contexto.params;
     const estudianteId = esquemaId.parse(id);
     const cuerpo = await leerCuerpo(request, esquemaCorte);
-    const corte = await registrarCorte({ ...cuerpo, estudianteId });
+    const corte = await registrarCorte({ ...cuerpo, estudianteId }, sesion.email);
     return responderOk(corte, 201);
   },
 );

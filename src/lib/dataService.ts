@@ -95,10 +95,12 @@ export {
 } from "@/lib/datos/estudiantes";
 export { listarCortes, registrarCorte } from "@/lib/datos/cortes";
 export { obtenerExtremosGrupo } from "@/lib/datos/grupo";
+export { listarNotasReporte } from "@/lib/datos/reportes";
 export type {
   Corte,
   DatosCorte,
   DetalleEstudiante,
   ExtremosGrupo,
   FilaEstudiante,
+  RegistroNotaReporte,
 } from "@/lib/datos/tipos";

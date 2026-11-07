@@ -14,6 +14,7 @@ export function NavegacionNotas({ email }: { email: string }) {
   const [error, setError] = useState("");
   const estudiantesActivo = pathname === "/notas" || pathname.startsWith("/notas/estudiantes");
   const grupoActivo = pathname === "/notas/grupo";
+  const reportesActivo = pathname === "/notas/reportes";
 
   async function cerrarSesion() {
     setMenuAbierto(false);
@@ -55,6 +56,18 @@ export function NavegacionNotas({ email }: { email: string }) {
         }`}
       >
         Grupo
+      </Link>
+      <Link
+        href="/notas/reportes"
+        aria-current={reportesActivo ? "page" : undefined}
+        onClick={() => setMenuAbierto(false)}
+        className={`rounded-xl px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-white ${
+          reportesActivo
+            ? "bg-white/15 text-white ring-1 ring-inset ring-white/20"
+            : "text-white/85 hover:bg-white/10 hover:text-white"
+        }`}
+      >
+        Reportes
       </Link>
       <div className="flex items-center gap-3 border-t border-white/20 pt-3 sm:border-0 sm:pt-0">
         <span className="max-w-56 truncate rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white/90" title={email}>

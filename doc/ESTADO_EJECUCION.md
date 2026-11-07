@@ -138,3 +138,17 @@
   - `npm.cmd run build`: correcto; la ruta `/notas/grupo` quedó compilada sin errores.
 - Verificación funcional: el panel del grupo muestra el estudiante o estudiantes con el mayor y menor promedio del último corte, así como el total en grupo; la navegación incluye el acceso directo a la vista de grupo.
 - Restricciones respetadas: se usa el último corte de cada estudiante activo y la lógica de cálculo ya estaba centralizada en `src/lib/datos/grupo.ts`.
+
+## Profesionalización · 2026-11-07
+
+- CI ya ejecutaba lint, type-check, Vitest y build; se amplió con Playwright en Chromium contra el build de producción.
+- E2E: cuatro escenarios pasaron en Chromium: error de acceso, redirección de ruta protegida, viewport móvil sin desbordamiento y recorrido por teclado.
+- Autoría: `supabase/migrations/0003_cortes_autoria.sql` añade `cortes.registrado_por`; la API obtiene el correo de la sesión, y el historial lo muestra en escritorio y móvil. Los datos históricos conservan `NULL`.
+- Recuperación: `doc/OPERACION_RECUPERACION.md` documenta backup, comprobación y restauración en staging. No se ejecutó una restauración real porque no hay una base staging identificada y la conexión local no debe usarse como destino de prueba.
+- Reportes: `/notas/reportes` presenta los cortes, permite descargar CSV y ofrece impresión/guardado como PDF. El CSV protege celdas que podrían interpretarse como fórmulas.
+- Tendencia: el historial individual compara los promedios del primer y último corte y muestra la serie cronológica con etiquetas accesibles.
+- Accesibilidad móvil: el acceso usa contraste del sistema, foco visible, errores asociados a campos y controles táctiles; Playwright revisa el ancho y la navegación con teclado.
+- Validación: `npm.cmd test` (16 archivos, 56 pruebas), `npm.cmd run type-check`, `npm.cmd run lint`, `npm.cmd run build` y `npm.cmd run test:e2e` correctos.
+- `npm.cmd run db:migrar`: aplicó `0003_cortes_autoria.sql`; `0001` y `0002` ya estaban aplicadas.
+- `npm.cmd run db:verificar`: autoría disponible, restricciones e integridad correctas, total de fallas 0; las pruebas transaccionales terminaron con `ROLLBACK`.
+- Pendiente operativo: ensayar una restauración completa en una base staging aislada; no se ejecutó sobre la base configurada para evitar sobrescribir datos reales.

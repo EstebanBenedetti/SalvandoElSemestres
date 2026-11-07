@@ -22,6 +22,7 @@ export interface FilaEstudiante {
 export interface Corte {
   id: number;
   estudianteId: string;
+  registradoPor: string | null;
   parcial1: number;
   parcial2: number;
   examenFinal: number;
@@ -45,4 +46,11 @@ export interface ExtremosGrupo {
   masAltos: Array<{ nombre: string; promedio: number }>;
   masBajos: Array<{ nombre: string; promedio: number }>;
   totalEnGrupo: number;
+}
+
+export interface RegistroNotaReporte {
+  estudianteId: string;
+  estudiante: string;
+  activo: boolean;
+  corte: Corte | null;
 }

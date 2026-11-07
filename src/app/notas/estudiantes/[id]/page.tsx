@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DesactivarEstudiante } from "@/components/notas/DesactivarEstudiante";
+import { TendenciaEstudiante } from "@/components/notas/TendenciaEstudiante";
 import { TablaHistorial } from "@/components/notas/TablaHistorial";
 import { Insignia } from "@/components/ui/Insignia";
 import { obtenerEstudiante } from "@/lib/dataService";
@@ -55,6 +56,7 @@ export default async function PaginaHistorial({ params }: PaginaHistorialProps) 
         ) : null}
         {estudiante.activo ? <DesactivarEstudiante estudianteId={estudiante.id} /> : null}
       </div>
+      <TendenciaEstudiante cortes={cortes} />
       <section className="grid gap-3">
         <div>
           <h2 className="text-xl font-bold text-texto">Historial de cortes</h2>
