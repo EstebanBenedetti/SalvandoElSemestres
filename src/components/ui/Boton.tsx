@@ -9,10 +9,10 @@ interface BotonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantes: Record<VarianteBoton, string> = {
-  primario: "border-transparent bg-primario text-white hover:bg-[#244b8c]",
-  secundario: "border-borde bg-superficie text-texto hover:bg-fondo",
-  peligro: "border-transparent bg-perdio text-white hover:bg-[#982828]",
-  fantasma: "border-transparent bg-transparent text-texto-suave hover:bg-primario-suave hover:text-primario",
+  primario: "border-transparent bg-primario text-white shadow-sm shadow-blue-900/15 hover:bg-[#244b8c]",
+  secundario: "border-borde bg-superficie text-texto shadow-sm hover:bg-fondo",
+  peligro: "border-transparent bg-perdio text-white shadow-sm shadow-red-900/15 hover:bg-[#982828]",
+  fantasma: "border-transparent bg-transparent text-primario hover:bg-primario-suave hover:text-primario",
 };
 
 export function Boton({

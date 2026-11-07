@@ -110,8 +110,11 @@ export function FormularioCorte({ estudianteId }: { estudianteId: string }) {
   if (corteGuardado) {
     return (
       <div className="grid gap-5 rounded-xl border border-borde bg-superficie p-6">
+        <Aviso tipo="exito" titulo="Corte registrado con éxito">
+          El promedio final quedó actualizado y el historial quedó guardado.
+        </Aviso>
         <div>
-          <p className="text-sm font-medium text-texto-suave">Corte registrado</p>
+          <p className="text-sm font-medium text-texto-suave">Promedio del corte</p>
           <p className="mt-2 text-4xl font-bold text-texto">{formatearNota(corteGuardado.promedio)}</p>
         </div>
         <InsigniaResultado resultado={corteGuardado.resultado} />

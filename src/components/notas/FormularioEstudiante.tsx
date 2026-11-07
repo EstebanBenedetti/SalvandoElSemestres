@@ -56,6 +56,11 @@ export function FormularioEstudiante() {
           typeof resultado.error.mensaje === "string"
             ? resultado.error.mensaje
             : "No se pudo guardar el estudiante.";
+
+        if (/duplicado|ya existe|unique/i.test(mensaje)) {
+          setErrorCampo("Ese nombre ya está registrado. Prueba con otro.");
+        }
+
         throw new Error(mensaje);
       }
 
