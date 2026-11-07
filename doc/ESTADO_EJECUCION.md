@@ -152,3 +152,10 @@
 - `npm.cmd run db:migrar`: aplicó `0003_cortes_autoria.sql`; `0001` y `0002` ya estaban aplicadas.
 - `npm.cmd run db:verificar`: autoría disponible, restricciones e integridad correctas, total de fallas 0; las pruebas transaccionales terminaron con `ROLLBACK`.
 - Pendiente operativo: ensayar una restauración completa en una base staging aislada; no se ejecutó sobre la base configurada para evitar sobrescribir datos reales.
+
+## Auditoría de dependencias · 2026-11-07
+
+- `npm.cmd audit --omit=dev`: **0 vulnerabilidades** en dependencias de producción.
+- Actualizaciones compatibles: Next.js y `eslint-config-next` a `16.4.5`, Vercel CLI a `65.12.1`, Zod a `4.6.7` y parches transitivos dentro de rangos existentes.
+- Validación tras actualizar: 17 archivos/58 pruebas Vitest, 5 E2E, type-check, lint y build correctos.
+- El audit completo conserva 48 avisos en dependencias de desarrollo (26 moderados, 21 altos y 1 crítico), originados principalmente en la cadena interna del CLI de Vercel. La versión estable actual es `65.12.1`; `npm audit fix --force` propone bajar a `65.2.0`, por lo que no se aplicó ese downgrade ni overrides incompatibles.

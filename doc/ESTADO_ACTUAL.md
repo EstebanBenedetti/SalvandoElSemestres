@@ -6,18 +6,20 @@ Auditoría realizada el 2026-10-31 para P00. Los valores de las variables de ent
 
 | Paquete | Versión declarada |
 |---|---|
-| next | `16.3.5` |
+| next | `16.4.5` (actualizado para corregir avisos críticos) |
+| eslint-config-next | `16.4.5` |
 | react | `19.2.8` |
 | typescript | `^5` |
 | tailwindcss | `^4` (instalada: `4.3.3`) |
 | pg | `^8.23.1` (añadido en P01; no estaba instalado en P00) |
-| zod | `^4.6.2` |
+| zod | `^4.6.2` (instalada: `4.6.7`) |
 | @supabase/supabase-js | `^2.117.2` |
 | server-only | `^0.0.1` (añadido en P04) |
 | tsx | `^4.23.15` (añadido en P04) |
 | jose | No instalado |
 | bcryptjs | `^3.0.3` |
 | vitest | `^4.1.11` |
+| vercel | `^65.12.1` (CLI de desarrollo) |
 
 ## 2. Scripts de `package.json`
 
