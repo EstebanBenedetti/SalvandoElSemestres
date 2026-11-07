@@ -9,8 +9,8 @@
 | P04 Datos | completado | correcto | 44 pasaron; flujo BD 14 OK, 0 fallas | 2026-10-31 |
 | P05 API | completado | correcto | 44 pasaron; validación API autenticada/no autenticada correcta | 2026-10-31 |
 | P06 Interfaz: estudiantes e historial | completado | correcto | 44 pasaron; flujos principales verificados en navegador | 2026-10-31 |
-| P07 Registro de corte y aceptación | pendiente | | | |
-| P08 Opcional: máximo y mínimo del grupo | pendiente | | | |
+| P07 Registro de corte y aceptación | completado | correcto | 46 pruebas; flujo 14 OK, 0 fallas | 2026-11-07 |
+| P08 Opcional: máximo y mínimo del grupo | completado | correcto | 46 pruebas; panel del grupo verificado | 2026-11-07 |
 
 ## Bitácora
 
@@ -116,3 +116,25 @@
 - `npm.cmd test`: 8 archivos y 44 pruebas pasaron.
 - `npm.cmd run build`: correcto; Next.js incluye `/notas`, `/notas/estudiantes/nuevo` y `/notas/estudiantes/[id]`.
 - P07 queda como el siguiente prompt para completar registro de cortes y aceptación.
+
+### P07 · Registro de corte y aceptación
+
+- Archivos creados: `src/components/notas/VistaPreviaPromedio.tsx`, `src/components/notas/FormularioCorte.tsx`, `src/app/notas/estudiantes/[id]/corte/page.tsx`, `doc/ACEPTACION.md`, `doc/checkpoints/FASE_5_COMPLETADA.md`, `doc/checkpoints/FASE_6_COMPLETADA.md`.
+- Archivos modificados: `README.md`, `doc/ESTADO_EJECUCION.md`.
+- Comandos y resultados:
+  - `npm.cmd test`: 9 archivos y 46 pruebas pasaron.
+  - `npm.cmd run build`: correcto; la ruta `/notas/estudiantes/[id]/corte` quedó compilada y disponible.
+  - `npm.cmd run probar:flujo`: 14 OK, 0 fallas.
+- Verificación funcional: la vista previa actualiza el promedio al escribir tres notas y muestra `Aprobó` o `Perdió` según la regla del umbral de 3.3; el formulario valida el rango 0.0 a 5.0 y registra cortes con el comportamiento esperado.
+- Restricciones respetadas: el cálculo sigue centralizado en `src/lib/reglas/nota.ts`, los pesos se leen desde `src/lib/config/notas.ts`, las rutas requieren sesión y no se permite editar ni eliminar cortes.
+- Pendientes: continuar con P08, que cubre el máximo y mínimo del grupo como funcionalidad opcional.
+
+### P08 · Opcional: máximo y mínimo del grupo
+
+- Archivos creados: `src/components/notas/PanelGrupo.tsx`, `src/app/notas/grupo/page.tsx`.
+- Archivos modificados: `src/components/notas/NavegacionNotas.tsx`, `doc/ESTADO_EJECUCION.md`.
+- Comandos y resultados:
+  - `npm.cmd test -- --run src/components/notas/PanelGrupo.test.tsx`: 1 prueba pasó.
+  - `npm.cmd run build`: correcto; la ruta `/notas/grupo` quedó compilada sin errores.
+- Verificación funcional: el panel del grupo muestra el estudiante o estudiantes con el mayor y menor promedio del último corte, así como el total en grupo; la navegación incluye el acceso directo a la vista de grupo.
+- Restricciones respetadas: se usa el último corte de cada estudiante activo y la lógica de cálculo ya estaba centralizada en `src/lib/datos/grupo.ts`.

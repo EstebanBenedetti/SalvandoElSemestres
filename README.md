@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NotaFlux
 
-## Getting Started
+Sistema de registro y cálculo de notas estudiantiles para un módulo mínimo de gestión académica.
 
-First, run the development server:
+## Descripción
+
+NotaFlux permite registrar estudiantes, consultar su historial, crear cortes con notas parciales y examen final, y obtener inmediatamente el promedio y el resultado asociado. La lógica de cálculo está centralizada en `src/lib/reglas/nota.ts` para evitar errores de redondeo y asegurar consistencia entre backend, frontend y validación.
+
+## Funcionalidades
+
+- Registro y listado de estudiantes.
+- Historial de cortes por estudiante.
+- Validación de notas entre 0.0 y 5.0.
+- Cálculo del promedio ponderado con el examen final como peso doble.
+- Resultado de aprobación con el umbral de 3.3 y comparación `>=`.
+- Protección por sesión para las rutas del módulo.
+- API REST protegida para consultar y registrar estudiantes y cortes.
+
+## Requisitos
+
+- Node.js 20+
+- PostgreSQL de Supabase
+- Archivo `.env.local` con las variables necesarias del proyecto
+- Acceso a Vercel para despliegue
+
+## Cómo correr en local
 
 ```bash
+npm install
+npm run db:migrar
+npm run db:demo
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Asegúrate de configurar `.env.local` con los nombres reales de las variables del proyecto y no versionar valores sensibles.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev`: inicia la aplicación en modo desarrollo.
+- `npm run build`: compila la aplicación de producción.
+- `npm run test`: ejecuta la suite de pruebas.
+- `npm run db:migrar`: aplica migraciones de la base de datos.
+- `npm run db:demo`: carga datos de ejemplo para ver el módulo.
+- `npm run db:verificar`: valida la integridad de la base de datos.
+- `npm run probar:flujo`: comprueba el flujo principal de negocio del módulo.
 
-## Learn More
+## Fórmula del promedio
 
-To learn more about Next.js, take a look at the following resources:
+El promedio se calcula con el mismo núcleo de reglas del proyecto:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+$$
+\text{promedio} = \frac{(P_1 \times 25) + (P_2 \times 25) + (EF \times 50)}{100}
+$$
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+con redondeo final a centésimas enteras, usando la función de cálculo en `src/lib/reglas/nota.ts`.
 
-## Deploy on Vercel
+## Regla de aprobación
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Se aprueba cuando:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+$$
+\text{promedio} \ge 3.3
+$$
+
+## Por qué se calcula con céntimas
+
+El proyecto redondea cada nota a centésimas antes de ponderarlas para evitar errores de punto flotante en el límite de aprobación. Esto evita casos como 3.29/3.30/3.30 que puedan desviarse por error decimal.
+
+## Estructura de carpetas
+
+- `src/app`: rutas y páginas del app router.
+- `src/components`: componentes visuales reutilizables y del módulo NotaFlux.
+- `src/lib`: reglas, validación, sesión, acceso a datos y utilidades.
+- `supabase/migrations`: migraciones SQL del módulo.
+- `scripts`: utilidades de migración, verificación y demo.
+- `doc`: documentación del plan, prompts y checkpoints.
+
+## Documentación
+
+- [doc/PLAN_NOTAS.md](doc/PLAN_NOTAS.md)
+- [doc/PROMPTS_NOTAS.md](doc/PROMPTS_NOTAS.md)
+- [doc/ACEPTACION.md](doc/ACEPTACION.md)

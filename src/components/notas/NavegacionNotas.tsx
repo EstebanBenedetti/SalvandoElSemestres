@@ -38,6 +38,14 @@ export function NavegacionNotas({ email }: { email: string }) {
       >
         Estudiantes
       </Link>
+      <Link
+        href="/notas/grupo"
+        aria-current={pathname === "/notas/grupo" ? "page" : undefined}
+        onClick={() => setMenuAbierto(false)}
+        className="rounded px-3 py-2 text-sm font-semibold text-white hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-white"
+      >
+        Grupo
+      </Link>
       <div className="flex items-center gap-3 border-t border-white/20 pt-3 sm:border-0 sm:pt-0">
         <span className="max-w-56 truncate text-sm text-white/85" title={email}>
           {email}
