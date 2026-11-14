@@ -1,14 +1,13 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ChangePasswordForm } from "@/components/auth/ChangePasswordForm";
-import { findUserById, verifyToken } from "@/lib/auth/local-auth";
+import { getAuthenticatedUser } from "@/lib/auth/local-auth";
 import { Container } from "@/components/ui/Container";
 
 export default async function ChangePasswordPage() {
   const token = (await cookies()).get("auth_token")?.value;
-  const payload = token ? verifyToken(token) : null;
-  const user = payload ? await findUserById(payload.sub) : null;
-  if (!user?.activo) redirect("/login");
+  const user = await getAuthenticatedUser(token);
+  if (!user) redirect("/login");
 
   return (
     <Container className="py-12">

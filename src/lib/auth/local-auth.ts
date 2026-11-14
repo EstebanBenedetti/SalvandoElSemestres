@@ -17,9 +17,12 @@ type UserRow = {
   ultimo_login: string | null;
   created_at: string;
   updated_at: string;
+  session_version: string;
 };
 
-const USER_FIELDS = "id,nombre,email,password_hash,rol,activo,ultimo_login,created_at,updated_at";
+type StoredUser = UserRecord & { sessionVersion: string };
+
+const USER_FIELDS = "id,nombre,email,password_hash,rol,activo,ultimo_login,created_at,updated_at,session_version";
 const USER_ROLES = ["admin", "usuario", "coordinador"] as const;
 
 export function hashPassword(password: string): string {
@@ -53,7 +56,7 @@ export function sanitizeUser(user: UserRecord): LocalUser {
   };
 }
 
-function mapUser(row: UserRow): UserRecord {
+function mapUser(row: UserRow): StoredUser {
   return {
     id: row.id,
     nombre: row.nombre,
@@ -64,6 +67,7 @@ function mapUser(row: UserRow): UserRecord {
     ultimoLogin: row.ultimo_login,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    sessionVersion: row.session_version,
   };
 }
 
@@ -73,12 +77,16 @@ function tokenSecret(): string {
   return secret;
 }
 
-export function createToken(user: UserRecord): string {
+export async function createToken(user: UserRecord): Promise<string> {
+  const storedUser = await findStoredUser("id", user.id);
+  if (!storedUser?.activo) throw new Error("No se puede crear una sesión para este usuario.");
+
   const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
   const payload = {
-    sub: user.id,
-    email: user.email,
-    rol: user.rol,
+    sub: storedUser.id,
+    email: storedUser.email,
+    rol: storedUser.rol,
+    sessionVersion: storedUser.sessionVersion,
     exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
   };
   const encodedPayload = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -91,6 +99,7 @@ export type AuthTokenPayload = {
   sub: string;
   email: string;
   rol: UserRecord["rol"];
+  sessionVersion: string;
   exp: number;
 };
 
@@ -116,6 +125,8 @@ export function verifyToken(token: string): AuthTokenPayload | null {
       typeof payload.sub !== "string" ||
       typeof payload.email !== "string" ||
       !USER_ROLES.includes(payload.rol) ||
+      typeof payload.sessionVersion !== "string" ||
+      payload.sessionVersion.length === 0 ||
       !Number.isInteger(payload.exp) ||
       payload.exp <= Math.floor(Date.now() / 1000)
     ) return null;
@@ -126,7 +137,7 @@ export function verifyToken(token: string): AuthTokenPayload | null {
   }
 }
 
-async function findStoredUser(column: "email" | "id" | "nombre", value: string): Promise<UserRecord | null> {
+async function findStoredUser(column: "email" | "id" | "nombre", value: string): Promise<StoredUser | null> {
   const { data, error } = await getSupabaseAdmin()
     .from("usuarios")
     .select(USER_FIELDS)
@@ -152,6 +163,16 @@ export async function findUserByLogin(identifier: string): Promise<LocalUser | n
 export async function findUserById(id: string): Promise<LocalUser | null> {
   const user = await findStoredUser("id", id);
   return user ? sanitizeUser(user) : null;
+}
+
+export async function getAuthenticatedUser(token: string | null | undefined): Promise<LocalUser | null> {
+  if (!token) return null;
+  const payload = verifyToken(token);
+  if (!payload) return null;
+
+  const user = await findStoredUser("id", payload.sub);
+  if (!user?.activo || user.sessionVersion !== payload.sessionVersion) return null;
+  return sanitizeUser(user);
 }
 
 export async function verifyCredentials(identifier: string, password: string): Promise<boolean> {

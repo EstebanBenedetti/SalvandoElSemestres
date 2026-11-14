@@ -1,16 +1,11 @@
 import { cookies } from "next/headers";
-import { findUserById, verifyToken } from "@/lib/auth/local-auth";
+import { getAuthenticatedUser } from "@/lib/auth/local-auth";
 import { ErrorDeNegocio } from "@/lib/reglas/errores";
 
 export async function obtenerSesion(): Promise<{ email: string } | null> {
   const token = (await cookies()).get("auth_token")?.value;
-  if (!token) return null;
-
-  const payload = verifyToken(token);
-  if (!payload) return null;
-
-  const usuario = await findUserById(payload.sub);
-  if (!usuario?.activo) return null;
+  const usuario = await getAuthenticatedUser(token);
+  if (!usuario) return null;
 
   return { email: usuario.email };
 }

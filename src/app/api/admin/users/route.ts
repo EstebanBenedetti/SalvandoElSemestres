@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createUser, findUserById, listUsers, updateUser, verifyToken } from "@/lib/auth/local-auth";
+import { createUser, getAuthenticatedUser, listUsers, updateUser } from "@/lib/auth/local-auth";
 
 const createSchema = z.object({
   nombre: z.string().trim().min(1).max(120),
@@ -23,10 +23,8 @@ const updateSchema = z.object({
 
 async function authorizationStatus(request: NextRequest): Promise<401 | 403 | null> {
   const token = request.cookies.get("auth_token")?.value;
-  const payload = token ? verifyToken(token) : null;
-  if (!payload) return 401;
-  const user = await findUserById(payload.sub);
-  if (!user?.activo) return 401;
+  const user = await getAuthenticatedUser(token);
+  if (!user) return 401;
   return user.rol === "admin" ? null : 403;
 }
 

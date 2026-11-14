@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     }
     await recordSuccessfulLogin(user.id);
 
-    const token = createToken({
+    const token = await createToken({
       id: user.id,
       nombre: user.nombre,
       email: user.email,

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { randomUUID } from "node:crypto";
 
 type TestRow = Record<string, unknown>;
 type QueryBuilder = {
@@ -22,6 +23,7 @@ import {
   createUser,
   findUserByEmail,
   findUserByLogin,
+  getAuthenticatedUser,
   hashPassword,
   recordSuccessfulLogin,
   verifyCredentials,
@@ -54,6 +56,7 @@ function createMockClient() {
         const row = {
           id: `user-${mocks.rows.length + 1}`,
           ...inserted,
+          session_version: randomUUID(),
           ultimo_login: null,
           created_at: timestamp,
           updated_at: timestamp,
@@ -64,7 +67,14 @@ function createMockClient() {
       query.update = (values) => ({
         eq: async (column, value) => {
           const row = mocks.rows.find((candidate) => candidate[column] === value);
-          if (row) Object.assign(row, values);
+          if (row) {
+            const revocarSesion =
+              ("password_hash" in values && row.password_hash !== values.password_hash) ||
+              ("rol" in values && row.rol !== values.rol) ||
+              ("activo" in values && row.activo !== values.activo);
+            Object.assign(row, values);
+            if (revocarSesion) row.session_version = randomUUID();
+          }
           return { error: null };
         },
       });
@@ -113,7 +123,7 @@ describe("auth local", () => {
 
   it("firma los tokens y rechaza modificaciones", async () => {
     const user = await createUser({ nombre: "Token", email: "token@local.test", password: "secreto123" });
-    const token = createToken({ ...user, passwordHash: "" });
+    const token = await createToken({ ...user, passwordHash: "" });
     const [header, payload, signature] = token.split(".");
     if (!header || !payload || !signature) throw new Error("El token generado no tiene el formato esperado.");
     const modifiedSignature = `${signature[0] === "A" ? "B" : "A"}${signature.slice(1)}`;
@@ -135,6 +145,18 @@ describe("auth local", () => {
     await expect(changePassword(user.id, "anterior123", "nueva-clave-456")).resolves.toBe("updated");
     await expect(verifyCredentials(user.email, "anterior123")).resolves.toBe(false);
     await expect(verifyCredentials(user.email, "nueva-clave-456")).resolves.toBe(true);
+  });
+
+  it("revoca los tokens emitidos antes de cambiar la contraseña", async () => {
+    const user = await createUser({ nombre: "Sesión", email: "sesion@local.test", password: "anterior123" });
+    const tokenAnterior = await createToken({ ...user, passwordHash: "" });
+
+    await expect(getAuthenticatedUser(tokenAnterior)).resolves.toMatchObject({ id: user.id });
+    await changePassword(user.id, "anterior123", "nueva-clave-456");
+
+    await expect(getAuthenticatedUser(tokenAnterior)).resolves.toBeNull();
+    const tokenNuevo = await createToken({ ...user, passwordHash: "" });
+    await expect(getAuthenticatedUser(tokenNuevo)).resolves.toMatchObject({ id: user.id });
   });
 
   it("no cambia la contraseña cuando la actual es incorrecta", async () => {

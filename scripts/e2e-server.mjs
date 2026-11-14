@@ -24,6 +24,7 @@ const user = {
   password_hash: `${salt}:${pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex")}`,
   rol: "usuario",
   activo: true,
+  session_version: "22222222-2222-4222-8222-222222222222",
   ultimo_login: null,
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-01T00:00:00.000Z",

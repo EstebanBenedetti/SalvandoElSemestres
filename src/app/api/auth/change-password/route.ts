@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { changePassword, verifyToken } from "@/lib/auth/local-auth";
+import { changePassword, getAuthenticatedUser } from "@/lib/auth/local-auth";
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
@@ -10,8 +10,8 @@ const changePasswordSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get("auth_token")?.value;
-    const payload = token ? verifyToken(token) : null;
-    if (!payload) {
+    const user = await getAuthenticatedUser(token);
+    if (!user) {
       return NextResponse.json({ success: false, error: "Inicia sesión para continuar." }, { status: 401 });
     }
 
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await changePassword(payload.sub, parsed.data.currentPassword, parsed.data.newPassword);
+    const result = await changePassword(user.id, parsed.data.currentPassword, parsed.data.newPassword);
     if (result === "invalid-current-password") {
       return NextResponse.json({ success: false, error: "La contraseña actual es incorrecta." }, { status: 400 });
     }

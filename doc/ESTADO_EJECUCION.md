@@ -175,3 +175,11 @@
 - `playwright.flujo.config.ts` rechaza bases cuyo nombre no incluya `e2e` o `test`; el fixture limpia el estudiante y sus cortes al finalizar.
 - CI provisiona PostgreSQL 16 efímero y aplica las migraciones en un job independiente. No se ejecutó localmente porque Docker no está disponible; no se usó la conexión de `.env.local` como base de prueba.
 - Los E2E smoke siguen pasando (5 escenarios); el flujo autenticado se ejecuta en CI o con una base local aislada.
+
+## Endurecimiento de sesiones · 2026-11-14
+
+- `supabase/migrations/0005_version_sesion_usuarios.sql` agrega `session_version` y la rota al cambiar contraseña, rol o estado; cubre los cambios directos y el procedimiento de recuperación de contraseña.
+- Los JWT incluyen la versión vigente. `getAuthenticatedUser` valida firma, expiración, estado y versión en las páginas y APIs autenticadas; los tokens anteriores a un cambio quedan rechazados.
+- Validación local: test de autenticación (9 pruebas), suite Vitest (62), type-check, lint, build y E2E smoke (5 escenarios) correctos.
+- La migración aún no se aplicó a una base real ni a staging: este entorno no tiene `pg_dump`, `pg_restore`, Docker ni una vinculación local de Vercel. Aplicarla antes de desplegar el código; los usuarios deberán autenticarse de nuevo una vez.
+- Pendientes externos: confirmar el proyecto Vercel canónico, completar A-13/A-14, ensayar una restauración en staging y configurar limitación distribuida de intentos de login en la plataforma.

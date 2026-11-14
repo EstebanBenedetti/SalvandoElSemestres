@@ -280,3 +280,11 @@ Vitest (`vitest run`), con configuración en `vitest.config.ts`. Las 24 pruebas 
 - `npm run test:e2e:flujo` corre en `playwright.flujo.config.ts` y exige `E2E_DATABASE_URL` cuyo nombre contiene `e2e` o `test`.
 - El test inicia sesión mediante el endpoint real con un stub local de Supabase; altas, cortes, historial y CSV usan PostgreSQL real aislado.
 - `.github/workflows/ci.yml` crea PostgreSQL 16 desechable, aplica migraciones y ejecuta el flujo en un job aparte. No usa credenciales ni datos de producción.
+
+## 22. Actualización de autenticación · 2026-11-14
+
+- La migración `0005_version_sesion_usuarios.sql` agrega `usuarios.session_version`; un trigger la rota ante cambios de contraseña, rol o estado, incluidos los cambios ejecutados por la recuperación de contraseña.
+- Los JWT incluyen esa versión y `getAuthenticatedUser` la compara con el valor persistido. Un cambio de contraseña, rol o estado invalida las sesiones existentes; los tokens emitidos antes de `0005` requieren nuevo inicio de sesión.
+- La migración está versionada, pero todavía no se aplicó a una base compartida. Antes de desplegar el código, ejecutarla en el destino correcto mediante `npm run db:migrar`.
+- No se ha configurado un limitador distribuido para intentos de login; se requiere definirlo en la plataforma o un servicio compartido, no usar memoria local en funciones serverless.
+- La prueba de restauración y la validación del despliegue Vercel siguen pendientes por falta de una base staging y de un proyecto Vercel vinculado en este entorno.

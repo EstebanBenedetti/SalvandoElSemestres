@@ -12,6 +12,7 @@ type UserRow = {
   ultimo_login: string | null;
   created_at: string;
   updated_at: string;
+  session_version: string;
 };
 
 type PasswordResetRow = {
@@ -28,7 +29,7 @@ type Database = {
     Tables: {
       usuarios: {
         Row: UserRow;
-        Insert: Omit<UserRow, "id" | "ultimo_login" | "created_at" | "updated_at"> & {
+        Insert: Omit<UserRow, "id" | "ultimo_login" | "created_at" | "updated_at" | "session_version"> & {
           id?: string;
           ultimo_login?: string | null;
           created_at?: string;

@@ -14,6 +14,7 @@ NotaFlux permite registrar estudiantes, consultar su historial, crear cortes con
 - Cálculo del promedio ponderado con el examen final como peso doble.
 - Resultado de aprobación con el umbral de 3.0 y comparación `>=`.
 - Protección por sesión para las rutas del módulo.
+- Revocación de sesiones vigentes cuando se cambia la contraseña, el rol o el estado de una cuenta.
 - API REST protegida para consultar y registrar estudiantes y cortes.
 
 ## Requisitos
@@ -97,3 +98,7 @@ npm.cmd run test:e2e:flujo
 ```
 
 CI crea un PostgreSQL efímero, aplica las migraciones y ejecuta el mismo flujo. La prueba elimina el estudiante y sus cortes al finalizar.
+
+## Despliegue de la versión de sesiones
+
+Antes de desplegar una versión que use `session_version`, aplica primero `npm run db:migrar` contra la base de datos de destino. La migración `0005_version_sesion_usuarios.sql` agrega la versión de sesión y su trigger. Al desplegar el código nuevo, los tokens emitidos antes de esta migración requerirán que los usuarios inicien sesión nuevamente.
